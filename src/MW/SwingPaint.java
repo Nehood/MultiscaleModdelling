@@ -28,8 +28,8 @@ import javax.swing.event.ListSelectionListener;
 public class SwingPaint {
 
     JButton randBtn, startBtn, stopBtn, evenlyRandBtn, circRandBtn, recrystBtn;
-    JTextField cellField, radiusField;
-    JLabel cellLabel, radiusLabel;
+    JTextField cellField, radiusField, cellSizeField;
+    JLabel cellLabel, radiusLabel, cellSizeLabel;
     JCheckBox periodicBox, continuousBox;
     JList<String> surroundList;
     String[] surrounds = {"Moore", "von Neumann", "Pentagonal Left", "Pentagonal Right", "Hexagonal Left", "Hexagonal Right", "Penatgonal Random", "Hexagonal Random"};
@@ -42,16 +42,28 @@ public class SwingPaint {
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == randBtn) {
                 drawArea.cellNumber = Integer.parseInt(cellField.getText());
+                if (Integer.parseInt(cellSizeField.getText()) > 5) {
+                	cellSizeField.setText(Integer.toString(5));
+                }
+                drawArea.size = Integer.parseInt(cellSizeField.getText());
                 drawArea.random();
             }
 
             if (e.getSource() == evenlyRandBtn) {
                 drawArea.cellNumber = Integer.parseInt(cellField.getText());
+                if (Integer.parseInt(cellSizeField.getText()) > 5) {
+                	cellSizeField.setText(Integer.toString(5));
+                }
+                drawArea.size = Integer.parseInt(cellSizeField.getText());
                 drawArea.evenlyRandom();
             }
 
             if (e.getSource() == circRandBtn) {
                 drawArea.cellNumber = Integer.parseInt(cellField.getText());
+                if (Integer.parseInt(cellSizeField.getText()) > 5) {
+                	cellSizeField.setText(Integer.toString(5));
+                }
+                drawArea.size = Integer.parseInt(cellSizeField.getText());
                 drawArea.radius = Integer.parseInt(radiusField.getText());
                 drawArea.circleRandom();
             }
@@ -198,6 +210,8 @@ public class SwingPaint {
         cellField = new JTextField("1000");
         radiusLabel = new JLabel("Radius:");
         radiusField = new JTextField("100");
+        cellSizeLabel = new JLabel("Radius:");
+        cellSizeField = new JTextField("1");
         randBtn = new JButton("Random");
         randBtn.addActionListener(actionListener);
         evenlyRandBtn = new JButton("Random Evenly");
@@ -225,6 +239,8 @@ public class SwingPaint {
         list.add(continuousBox);
         list.add(radiusLabel);
         list.add(radiusField);
+        list.add(cellSizeLabel);
+        list.add(cellSizeField);
         
         controls.add(randBtn);
         controls.add(evenlyRandBtn);
@@ -237,7 +253,7 @@ public class SwingPaint {
         content.add(list, BorderLayout.NORTH);
         content.add(controls, BorderLayout.SOUTH);
 
-        frame.setSize(885, 850);
+        frame.setSize(785, 750);
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);

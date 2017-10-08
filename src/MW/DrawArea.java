@@ -24,8 +24,9 @@ import javax.swing.JComponent;
  */
 public class DrawArea extends JComponent {
 
-    int cells = 750;
+	int cellsMax = 650;
     int size = 1;
+    int cells = cellsMax / size;
     Cell[][] tab = new Cell[cells][cells];
     Cell[][] tab1 = new Cell[cells][cells];
     double[][] disTab = new double[cells][cells];
