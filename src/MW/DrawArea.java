@@ -13,9 +13,13 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 import javax.swing.JComponent;
 
 /**
@@ -23,8 +27,7 @@ import javax.swing.JComponent;
  * @author Leszek
  */
 public class DrawArea extends JComponent {
-
-	int cellsMax = 650;
+    int cellsMax = 650;
     int size = 1;
     int cells = cellsMax / size;
     Cell[][] tab = new Cell[cells][cells];
@@ -38,11 +41,9 @@ public class DrawArea extends JComponent {
     static int ID2 = 0;
     boolean isAlive;
     boolean periodic = true;
-    boolean continuous = false;
     boolean moore = true;
-    boolean vonNeumann, pentagonalLeft, pentagonalRight, hexagonalLeft, hexagonalRight, pentagonalRandom, hexagonalRandom = false;
+    boolean vonNeumann = false;
     int cellNumber = 0;
-    int radius = 0;
     int los = 0;
     int numberRecrystallized = 0;
     private Image image;
@@ -74,7 +75,7 @@ public class DrawArea extends JComponent {
                     x = e.getX() / size;
                     y = e.getY() / size;
                     if (tab[x][y].ID == -1) {
-                        tab[x][y] = new Cell(ID++);
+                        tab[x][y] = new Cell(ID++, x, y);
                         tab1[x][y] = tab[x][y];
                         colors.add(tab[x][y]);
                         cellNumber++;
@@ -95,7 +96,7 @@ public class DrawArea extends JComponent {
                     x = e.getX() / size;
                     y = e.getY() / size;
                     if (tab[x][y].ID == -1) {
-                        tab[x][y] = new Cell(ID++);
+                        tab[x][y] = new Cell(ID++, x, y);
                         tab1[x][y] = tab[x][y];
                         colors.add(tab[x][y]);
                         cellNumber++;
@@ -162,99 +163,19 @@ public class DrawArea extends JComponent {
         clearTables();
         Random rand = new Random();
         colors = new ArrayList<>();
+        cells = cellsMax / size;
         for (int i = 0; i < cellNumber; i++) {
             int x = rand.nextInt(cells);
             int y = rand.nextInt(cells);
-            tab[x][y] = new Cell(ID++);
+            tab[x][y] = new Cell(ID++, x, y);
             tab1[x][y] = tab[x][y];
             colors.add(tab[x][y]);
-        }
-        draw();
-    }
-
-    public void evenlyRandom() {
-        clearTables();
-        colors = new ArrayList<>();
-        int counter = 0;
-        int dis = (int) (cells / Math.sqrt(cellNumber));
-        for (int x = dis / 2; x < cells; x += dis) {
-            for (int y = dis / 2; y < cells; y += dis) {
-                counter++;
-                tab[x][y] = new Cell(ID++);
-                tab1[x][y] = tab[x][y];
-                colors.add(tab[x][y]);
-            }
-        }
-        cellNumber = counter;
-        draw();
-    }
-
-    public void circleRandom() {
-        clearTables();
-        colors = new ArrayList<>();
-        Random rand = new Random();
-        int liczba = 0;
-        for (int i = 0; i < cellNumber; i++) {
-            int x = 0;
-            int y = 0;
-            boolean free = true;
-            for (int j = 0; j < 100000; j++) {
-                x = rand.nextInt(cells);
-                y = rand.nextInt(cells);
-                free = true;
-                for (Cell item : colors) {
-                    if (!periodic) {
-                        if (((x - item.x) * (x - item.x)) + ((y - item.y) * (y - item.y)) <= (radius * radius)) {
-                            free = false;
-                        }
-                    } else {
-                        int tempX = x;
-                        int tempY = y;
-                        if (x <= radius && item.x >= (cells - radius)) {
-                            tempX = x + cells;
-                        }
-                        if (x >= (cells - radius) && (item.x <= radius)) {
-                            tempX = -(cells - x);
-                        }
-                        if (y <= radius && item.y >= (cells - radius)) {
-                            tempY = y + cells;
-                        }
-                        if (y >= (cells - radius) && (item.y <= radius)) {
-                            tempY = -(cells - y);
-                        }
-                        if (((tempX - item.x) * (tempX - item.x)) + ((tempY - item.y) * (tempY - item.y)) <= (radius * radius)) {
-                            free = false;
-                        }
-                    }
-                    if (!free) {
-                        break;
-                    }
-                }
-                if (free) {
-                    break;
-                }
-            }
-            if (!free) {
-                System.out.println("Brak wolnych miejsc!");
-                cellNumber = liczba;
-                draw();
-                return;
-            }
-            tab[x][y] = new Cell(ID++);
-            tab[x][y].x = x;
-            tab[x][y].y = y;
-            tab1[x][y] = tab[x][y];
-            colors.add(tab[x][y]);
-            liczba++;
         }
         draw();
     }
 
     public void gameOfLife() {
         while (isAlive) {
-            if (continuous) {
-                growSeed();
-            }
             draw();
             for (int i = 0; i < cells; i++) {
                 for (int j = 0; j < cells; j++) {
@@ -289,32 +210,6 @@ public class DrawArea extends JComponent {
                         if ((j == (y - 1)) || (j == (y + 1))) {
                             continue;
                         }
-                    }
-                }
-                if (pentagonalLeft || (pentagonalRandom && los == 0)) {
-                    if (i == (x + 1)) {
-                        continue;
-                    }
-                }
-                if (pentagonalRight || (pentagonalRandom && los == 1)) {
-                    if (i == (x - 1)) {
-                        continue;
-                    }
-                }
-                if (hexagonalLeft || (hexagonalRandom && los == 0)) {
-                    if (i == (x - 1) && j == (y + 1)) {
-                        continue;
-                    }
-                    if (i == (x + 1) && j == (y - 1)) {
-                        continue;
-                    }
-                }
-                if (hexagonalRight || (hexagonalRandom && los == 1)) {
-                    if (i == (x - 1) && j == (y - 1)) {
-                        continue;
-                    }
-                    if (i == (x + 1) && j == (y + 1)) {
-                        continue;
                     }
                 }
                 int tempX = i;
@@ -432,7 +327,7 @@ public class DrawArea extends JComponent {
             int x = rand.nextInt(cells);
             int y = rand.nextInt(cells);
             if (tab[x][y].ID == -1) {
-                tab[x][y] = new Cell(ID++);
+                tab[x][y] = new Cell(ID++, x, y);
                 tab1[x][y] = tab[x][y];
                 colors.add(tab[x][y]);
                 cellNumber++;
@@ -466,15 +361,6 @@ public class DrawArea extends JComponent {
                     }
                 }
             }
-//            if (!colorsRecrystallized.isEmpty()) {
-//                for (int i = 0; i < cells; i++) {
-//                    for (int j = 0; j < cells; j++) {
-//                        int tmp = neighboursRecrystallized(i, j);
-//                        if (!tab[i][j].recristallized && tmp != -1) {
-//                            tab1[i][j] = (Cell) colorsRecrystallized.get(tmp);
-//                        }
-//                    }
-//                }
             for (int i = 0; i < cells; i++) {
                 for (int j = 0; j < cells; j++) {
                     tab[i][j] = tab1[i][j];
@@ -500,32 +386,6 @@ public class DrawArea extends JComponent {
                         if ((j == (y - 1)) || (j == (y + 1))) {
                             continue;
                         }
-                    }
-                }
-                if (pentagonalLeft || (pentagonalRandom && los == 0)) {
-                    if (i == (x + 1)) {
-                        continue;
-                    }
-                }
-                if (pentagonalRight || (pentagonalRandom && los == 1)) {
-                    if (i == (x - 1)) {
-                        continue;
-                    }
-                }
-                if (hexagonalLeft || (hexagonalRandom && los == 0)) {
-                    if (i == (x - 1) && j == (y + 1)) {
-                        continue;
-                    }
-                    if (i == (x + 1) && j == (y - 1)) {
-                        continue;
-                    }
-                }
-                if (hexagonalRight || (hexagonalRandom && los == 1)) {
-                    if (i == (x - 1) && j == (y - 1)) {
-                        continue;
-                    }
-                    if (i == (x + 1) && j == (y + 1)) {
-                        continue;
                     }
                 }
                 int tempX = i;
@@ -682,36 +542,6 @@ public class DrawArea extends JComponent {
         }
     }
 
-//    public void dislocationCannon(double dis) {
-//        double dislocations = dis;
-//        double cellDislocations = dislocations / (cells * cells);
-//        for (int i = 0; i < cells; i++) {
-//            for (int j = 0; j < cells; j++) {
-//                if (isBorder(i, j)) {
-//                    double tempDislocations = 0.8 * cellDislocations;
-//                    tab1[i][j].dislocations += tempDislocations;
-//                    tab[i][j].dislocations = tab1[i][j].dislocations;
-//                    dislocations -= tempDislocations;
-//                } else {
-//                    double tempDislocations = 0.2 * cellDislocations;
-//                    tab1[i][j].dislocations += tempDislocations;
-//                    tab[i][j].dislocations = tab1[i][j].dislocations;
-//                    dislocations -= tempDislocations;
-//                }
-//            }
-//        }
-//        double N = 30.0;
-//        Random rand = new Random();
-//        cellDislocations = dislocations / N;
-//        while (dislocations > cellDislocations) {
-//            int x = rand.nextInt(cells);
-//            int y = rand.nextInt(cells);
-//            if (isBorder(x, y)) {
-//                tab[x][y].dislocations += cellDislocations;
-//                dislocations -= cellDislocations;
-//            }
-//        }
-//    }
     public boolean isBorder(int x, int y) {
         boolean state = false;
         for (int i = x - 1; i <= x + 1; i++) {
@@ -756,6 +586,44 @@ public class DrawArea extends JComponent {
         return state;
     }
 
+    public boolean importToFile() throws FileNotFoundException
+    {
+        File file = new File("temp.txt");
+        PrintWriter save = new PrintWriter("temp.txt");
+        save.println(cells + " " + size);
+        for (int i = 0; i < cells; i++)
+        {
+            for (int j = 0; j < cells; j++)
+            {
+                save.println(i + " " + j + " " + tab[i][j].ID + " " + tab[i][j].color.getRed()+ " " + tab[i][j].color.getGreen()+ " " + tab[i][j].color.getBlue());
+            }
+        }
+        save.close();
+        return true;
+    }
+    
+    public boolean exportFromFile() throws FileNotFoundException
+    {
+        createTables();
+        File file = new File("temp.txt");
+        Scanner from = new Scanner(file);
+        cells = from.nextInt();
+        size = from.nextInt();
+        for (int i = 0; i < cells; i++)
+        {
+            for (int j = 0; j < cells; j++)
+            {
+                tab[i][j].x = from.nextInt();
+                tab[i][j].y = from.nextInt();
+                tab[i][j].ID = from.nextInt();
+                tab[i][j].color = new Color(from.nextInt(), from.nextInt(), from.nextInt());
+            }
+        }
+        from.close();
+        draw();
+        return true;
+    }
+    
     public class Cell {
 
         int ID;
@@ -765,12 +633,14 @@ public class DrawArea extends JComponent {
         public double dislocations;
         public boolean recristallized = false;
 
-        public Cell(int id) {
+        public Cell(int id, int x, int y) {
             Random rand = new Random();
             float r = rand.nextFloat();
             float g = rand.nextFloat();
             float b = rand.nextFloat();
             this.ID = id;
+            this.x = x;
+            this.y = y;
             color = new Color(r, g, b);
             dislocations = 0.0;
         }

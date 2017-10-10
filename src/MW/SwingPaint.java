@@ -10,12 +10,18 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
@@ -27,14 +33,18 @@ import javax.swing.event.ListSelectionListener;
  */
 public class SwingPaint {
 
-    JButton randBtn, startBtn, stopBtn, evenlyRandBtn, circRandBtn, recrystBtn;
-    JTextField cellField, radiusField, cellSizeField;
-    JLabel cellLabel, radiusLabel, cellSizeLabel;
-    JCheckBox periodicBox, continuousBox;
+    JButton randBtn, startBtn, stopBtn, recrystBtn;
+    JTextField cellField, cellSizeField;
+    JLabel cellLabel, cellSizeLabel;
+    JCheckBox periodicBox;
+    JMenuBar menuBar;
+    JMenu menu;
+    JMenuItem menuItem;
     JList<String> surroundList;
-    String[] surrounds = {"Moore", "von Neumann", "Pentagonal Left", "Pentagonal Right", "Hexagonal Left", "Hexagonal Right", "Penatgonal Random", "Hexagonal Random"};
+    String[] surrounds = {"Moore", "von Neumann"};
 
     DrawArea drawArea;
+    
     ActionListener actionListener = new ActionListener() {
         Thread thread = new Thread();
 
@@ -47,25 +57,6 @@ public class SwingPaint {
                 }
                 drawArea.size = Integer.parseInt(cellSizeField.getText());
                 drawArea.random();
-            }
-
-            if (e.getSource() == evenlyRandBtn) {
-                drawArea.cellNumber = Integer.parseInt(cellField.getText());
-                if (Integer.parseInt(cellSizeField.getText()) > 5) {
-                	cellSizeField.setText(Integer.toString(5));
-                }
-                drawArea.size = Integer.parseInt(cellSizeField.getText());
-                drawArea.evenlyRandom();
-            }
-
-            if (e.getSource() == circRandBtn) {
-                drawArea.cellNumber = Integer.parseInt(cellField.getText());
-                if (Integer.parseInt(cellSizeField.getText()) > 5) {
-                	cellSizeField.setText(Integer.toString(5));
-                }
-                drawArea.size = Integer.parseInt(cellSizeField.getText());
-                drawArea.radius = Integer.parseInt(radiusField.getText());
-                drawArea.circleRandom();
             }
             if (e.getSource() == startBtn) {
                 drawArea.isAlive = true;
@@ -102,9 +93,6 @@ public class SwingPaint {
             if (e.getSource() == periodicBox) {
                 drawArea.periodic = periodicBox.isSelected();
             }
-            if (e.getSource() == continuousBox) {
-                drawArea.continuous = continuousBox.isSelected();
-            }
         }
     };
 
@@ -127,97 +115,19 @@ public class SwingPaint {
                 if (index == 0) {
                     drawArea.moore = true;
                     drawArea.vonNeumann = false;
-                    drawArea.pentagonalLeft = false;
-                    drawArea.pentagonalRight = false;
-                    drawArea.hexagonalLeft = false;
-                    drawArea.hexagonalRight = false;
-                    drawArea.pentagonalRandom = false;
-                    drawArea.hexagonalRandom = false;
                 }
                 if (index == 1) {
                     drawArea.moore = false;
                     drawArea.vonNeumann = true;
-                    drawArea.pentagonalLeft = false;
-                    drawArea.pentagonalRight = false;
-                    drawArea.hexagonalLeft = false;
-                    drawArea.hexagonalRight = false;
-                    drawArea.pentagonalRandom = false;
-                    drawArea.hexagonalRandom = false;
-                }
-                if (index == 2) {
-                    drawArea.moore = false;
-                    drawArea.vonNeumann = false;
-                    drawArea.pentagonalLeft = true;
-                    drawArea.pentagonalRight = false;
-                    drawArea.hexagonalLeft = false;
-                    drawArea.hexagonalRight = false;
-                    drawArea.pentagonalRandom = false;
-                    drawArea.hexagonalRandom = false;
-                }
-                if (index == 3) {
-                    drawArea.moore = false;
-                    drawArea.vonNeumann = false;
-                    drawArea.pentagonalLeft = false;
-                    drawArea.pentagonalRight = true;
-                    drawArea.hexagonalLeft = false;
-                    drawArea.hexagonalRight = false;
-                    drawArea.pentagonalRandom = false;
-                    drawArea.hexagonalRandom = false;
-                }
-                if (index == 4) {
-                    drawArea.moore = false;
-                    drawArea.vonNeumann = false;
-                    drawArea.pentagonalLeft = false;
-                    drawArea.pentagonalRight = false;
-                    drawArea.hexagonalLeft = true;
-                    drawArea.hexagonalRight = false;
-                    drawArea.pentagonalRandom = false;
-                    drawArea.hexagonalRandom = false;
-                }
-                if (index == 5) {
-                    drawArea.moore = false;
-                    drawArea.vonNeumann = false;
-                    drawArea.pentagonalLeft = false;
-                    drawArea.pentagonalRight = false;
-                    drawArea.hexagonalLeft = false;
-                    drawArea.hexagonalRight = true;
-                    drawArea.pentagonalRandom = false;
-                    drawArea.hexagonalRandom = false;
-                }
-                if (index == 6) {
-                    drawArea.moore = false;
-                    drawArea.vonNeumann = false;
-                    drawArea.pentagonalLeft = false;
-                    drawArea.pentagonalRight = false;
-                    drawArea.hexagonalLeft = false;
-                    drawArea.hexagonalRight = false;
-                    drawArea.pentagonalRandom = true;
-                    drawArea.hexagonalRandom = false;
-                }
-                if (index == 7) {
-                    drawArea.moore = false;
-                    drawArea.vonNeumann = false;
-                    drawArea.pentagonalLeft = false;
-                    drawArea.pentagonalRight = false;
-                    drawArea.hexagonalLeft = false;
-                    drawArea.hexagonalRight = false;
-                    drawArea.pentagonalRandom = false;
-                    drawArea.hexagonalRandom = true;
                 }
             }
         });
         cellLabel = new JLabel("Number of cells:");
         cellField = new JTextField("1000");
-        radiusLabel = new JLabel("Radius:");
-        radiusField = new JTextField("100");
         cellSizeLabel = new JLabel("Radius:");
         cellSizeField = new JTextField("1");
         randBtn = new JButton("Random");
         randBtn.addActionListener(actionListener);
-        evenlyRandBtn = new JButton("Random Evenly");
-        evenlyRandBtn.addActionListener(actionListener);
-        circRandBtn = new JButton("Circles");
-        circRandBtn.addActionListener(actionListener);
         startBtn = new JButton("Start");
         startBtn.addActionListener(actionListener);
         stopBtn = new JButton("Stop");
@@ -226,8 +136,38 @@ public class SwingPaint {
         recrystBtn.addActionListener(actionListener);
         periodicBox = new JCheckBox("Periodic", true);
         periodicBox.addActionListener(actionListener);
-        continuousBox = new JCheckBox("Continuous growth", false);
-        continuousBox.addActionListener(actionListener);
+        
+        menuBar = new JMenuBar();
+        menu = new JMenu("File");
+        menuBar.add(menu);
+        menuItem = new JMenuItem("Import");
+        menuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    drawArea.importToFile();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+        });
+        menu.add(menuItem);
+        menuItem = new JMenuItem("Export");
+        menuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    drawArea.exportFromFile();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+        });
+        menu.add(menuItem);
 
         JPanel list = new JPanel();
         JPanel neighbours = new JPanel();
@@ -236,23 +176,19 @@ public class SwingPaint {
         list.add(cellLabel);
         list.add(cellField);
         list.add(periodicBox);
-        list.add(continuousBox);
-        list.add(radiusLabel);
-        list.add(radiusField);
         list.add(cellSizeLabel);
         list.add(cellSizeField);
         
         controls.add(randBtn);
-        controls.add(evenlyRandBtn);
-        controls.add(circRandBtn);
         controls.add(startBtn);
         controls.add(stopBtn);
-        controls.add(recrystBtn);
+        //controls.add(recrystBtn);
         
         content.add(neighbours, BorderLayout.WEST);
         content.add(list, BorderLayout.NORTH);
         content.add(controls, BorderLayout.SOUTH);
 
+        frame.setJMenuBar(menuBar);
         frame.setSize(785, 750);
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
