@@ -13,13 +13,18 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 /**
@@ -622,6 +627,14 @@ public class DrawArea extends JComponent {
         from.close();
         draw();
         return true;
+    }
+    
+    public boolean importToBMP() throws IOException
+    {
+    	BufferedImage img = (BufferedImage) image;
+    	RenderedImage rendim = img;
+    	ImageIO.write(rendim, "bmp", new File("F:\\Programowanie\\Java\\MultiscaleModdelling\\wynik.bmp"));
+    	return true;
     }
     
     public class Cell {

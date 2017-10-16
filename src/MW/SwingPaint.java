@@ -11,6 +11,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BoxLayout;
@@ -168,6 +169,23 @@ public class SwingPaint {
             
         });
         menu.add(menuItem);
+        menuItem = new JMenuItem("importToBMP");
+        menuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    drawArea.importToBMP();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+            
+        });
+        menu.add(menuItem);
 
         JPanel list = new JPanel();
         JPanel neighbours = new JPanel();
@@ -178,6 +196,7 @@ public class SwingPaint {
         list.add(periodicBox);
         list.add(cellSizeLabel);
         list.add(cellSizeField);
+        //list.add(recrystBtn);
         
         controls.add(randBtn);
         controls.add(startBtn);
