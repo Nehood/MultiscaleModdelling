@@ -637,6 +637,14 @@ public class DrawArea extends JComponent {
     	return true;
     }
     
+    public boolean exportFromBMP() throws IOException
+    {
+    	File bmpFile = new File("wynik.bmp");
+    	image = ImageIO.read(bmpFile);
+    	draw();
+    	return true;
+    }
+    
     public class Cell {
 
         int ID;

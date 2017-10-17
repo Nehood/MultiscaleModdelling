@@ -186,6 +186,24 @@ public class SwingPaint {
             
         });
         menu.add(menuItem);
+        
+        menuItem = new JMenuItem("exportFromBMP");
+        menuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    drawArea.exportFromBMP();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+            
+        });
+        menu.add(menuItem);
 
         JPanel list = new JPanel();
         JPanel neighbours = new JPanel();
