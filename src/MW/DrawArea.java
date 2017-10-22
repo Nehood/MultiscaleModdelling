@@ -26,6 +26,7 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -64,6 +65,8 @@ public class DrawArea extends JComponent {
     double B_sigma = 80000000000.0;
     double dTau = 0.001;
     double time = 0.0;
+    int inclusionSize = 10;
+    boolean inclusionRound = false;
 
     public DrawArea() {
         setDoubleBuffered(true);
@@ -79,35 +82,45 @@ public class DrawArea extends JComponent {
                 if (!isAlive) {
                     x = e.getX() / size;
                     y = e.getY() / size;
-                    if (tab[x][y].ID == -1) {
-                        tab[x][y] = new Cell(ID++, x, y);
-                        tab1[x][y] = tab[x][y];
-                        colors.add(tab[x][y]);
-                        cellNumber++;
-                        draw();
+                    for (int i = x - inclusionSize / 2; i < x + inclusionSize / 2; i++){
+                        for (int j = y - inclusionSize / 2; j < y + inclusionSize / 2; j++){
+                        	if(inclusionRound && (i - x) * (i - x) + (j - y) * (j - y) < (inclusionSize / 2) * (inclusionSize / 2))
+                        	{
+                        		tab[i][j] = new Cell(true, i, j);
+                                tab1[i][j] = tab[i][j];
+                                colors.add(tab[x][y]);
+                                cellNumber++;
+                        	}
+                        	if (!inclusionRound)
+                        	{
+                        		tab[i][j] = new Cell(true, i, j);
+                            	tab1[i][j] = tab[i][j];
+                            	colors.add(tab[x][y]);
+                            	cellNumber++;
+                        	}
+                        }
                     }
+                    draw();
                 }
             }
         });
 
         addMouseMotionListener(new MouseMotionAdapter() {
 
-            int x;
-            int y;
+            //int x;
+            //int y;
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (!isAlive) {
-                    x = e.getX() / size;
-                    y = e.getY() / size;
-                    if (tab[x][y].ID == -1) {
-                        tab[x][y] = new Cell(ID++, x, y);
-                        tab1[x][y] = tab[x][y];
-                        colors.add(tab[x][y]);
-                        cellNumber++;
-                        draw();
-                    }
-                }
+//                if (!isAlive) {
+//                    x = e.getX() / size;
+//                    y = e.getY() / size;
+//                    tab[x][y] = new Cell(true, x, y);
+//                    tab1[x][y] = tab[x][y];
+//                    colors.add(tab[x][y]);
+//                    cellNumber++;
+//                    draw();
+//                }
             }
         });
     }
@@ -125,6 +138,7 @@ public class DrawArea extends JComponent {
 
     public void clear() {
         createTables();
+        image.flush();
         g2.setPaint(Color.LIGHT_GRAY);
         g2.fillRect(0, 0, getSize().width, getSize().height);
         g2.setPaint(Color.BLACK);
@@ -154,6 +168,9 @@ public class DrawArea extends JComponent {
     public void clearTables() {
         for (int i = 0; i < cells; i++) {
             for (int j = 0; j < cells; j++) {
+                if(tab[i][j].ID == -2){
+                    continue;
+                }
                 tab[i][j].ID = -1;
                 tab[i][j].color = Color.WHITE;
                 tab1[i][j] = tab[i][j];
@@ -172,9 +189,11 @@ public class DrawArea extends JComponent {
         for (int i = 0; i < cellNumber; i++) {
             int x = rand.nextInt(cells);
             int y = rand.nextInt(cells);
-            tab[x][y] = new Cell(ID++, x, y);
-            tab1[x][y] = tab[x][y];
-            colors.add(tab[x][y]);
+            if (tab[x][y].ID == -1) {
+	            tab[x][y] = new Cell(ID++, x, y);
+	            tab1[x][y] = tab[x][y];
+	            colors.add(tab[x][y]);
+            }
         }
         draw();
     }
@@ -184,7 +203,7 @@ public class DrawArea extends JComponent {
             draw();
             for (int i = 0; i < cells; i++) {
                 for (int j = 0; j < cells; j++) {
-                    if (tab[i][j].ID != -1) {
+                    if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
                         checkNeighbourhood(i, j);
                     }
                 }
@@ -293,6 +312,9 @@ public class DrawArea extends JComponent {
                     if (j == cells) {
                         continue;
                     }
+                }
+                if (tab[tempX][tempY].ID == -2){
+                    continue;
                 }
                 if (tab[tempX][tempY].ID != -1) {
                     temp[tab[tempX][tempY].ID]++;
@@ -631,16 +653,22 @@ public class DrawArea extends JComponent {
     
     public boolean importToBMP() throws IOException
     {
+        String filename;
+        filename =  JOptionPane.showInputDialog("filename:");
+        File bmpFile = new File(filename + ".bmp");
     	BufferedImage img = (BufferedImage) image;
     	RenderedImage rendim = img;
-    	ImageIO.write(rendim, "bmp", new File("F:\\Programowanie\\Java\\MultiscaleModdelling\\wynik.bmp"));
+    	ImageIO.write(rendim, "bmp", bmpFile);
     	return true;
     }
     
     public boolean exportFromBMP() throws IOException
     {
-    	File bmpFile = new File("wynik.bmp");
-    	image = ImageIO.read(bmpFile);
+        String filename;
+        filename =  JOptionPane.showInputDialog("filename:");
+    	File bmpFile = new File(filename + ".bmp");
+    	BufferedImage tmpImage = ImageIO.read(bmpFile);
+        image = tmpImage;
     	draw();
     	return true;
     }
@@ -681,6 +709,13 @@ public class DrawArea extends JComponent {
             this.ID = -1;
             color = Color.WHITE;
             dislocations = 0.0;
+        }
+        
+        public Cell(boolean isInclusion, int x, int y) {   // for creating inclusions
+            this.ID = -2;
+            color = Color.BLACK;
+            this.x = x;
+            this.y = y;
         }
     }
 

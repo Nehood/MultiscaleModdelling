@@ -10,6 +10,8 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -25,6 +27,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -35,9 +39,9 @@ import javax.swing.event.ListSelectionListener;
 public class SwingPaint {
 
     JButton randBtn, startBtn, stopBtn, recrystBtn;
-    JTextField cellField, cellSizeField;
-    JLabel cellLabel, cellSizeLabel;
-    JCheckBox periodicBox;
+    JTextField cellField, cellSizeField, inclusionSizeField;
+    JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel;
+    JCheckBox periodicBox, inclusionRoundBox;
     JMenuBar menuBar;
     JMenu menu;
     JMenuItem menuItem;
@@ -53,8 +57,8 @@ public class SwingPaint {
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == randBtn) {
                 drawArea.cellNumber = Integer.parseInt(cellField.getText());
-                if (Integer.parseInt(cellSizeField.getText()) > 5) {
-                	cellSizeField.setText(Integer.toString(5));
+                if (Integer.parseInt(cellSizeField.getText()) > 9) {
+                	cellSizeField.setText(Integer.toString(9));
                 }
                 drawArea.size = Integer.parseInt(cellSizeField.getText());
                 drawArea.random();
@@ -94,6 +98,9 @@ public class SwingPaint {
             if (e.getSource() == periodicBox) {
                 drawArea.periodic = periodicBox.isSelected();
             }
+            if (e.getSource() == inclusionRoundBox) {
+                drawArea.inclusionRound = inclusionRoundBox.isSelected();
+            }
         }
     };
 
@@ -125,7 +132,7 @@ public class SwingPaint {
         });
         cellLabel = new JLabel("Number of cells:");
         cellField = new JTextField("1000");
-        cellSizeLabel = new JLabel("Radius:");
+        cellSizeLabel = new JLabel("Cell Size:");
         cellSizeField = new JTextField("1");
         randBtn = new JButton("Random");
         randBtn.addActionListener(actionListener);
@@ -137,11 +144,57 @@ public class SwingPaint {
         recrystBtn.addActionListener(actionListener);
         periodicBox = new JCheckBox("Periodic", true);
         periodicBox.addActionListener(actionListener);
+        inclusionSizeLabel = new JLabel("Inclusion size:");
+        inclusionSizeField = new JTextField("10");
+        inclusionRoundBox = new JCheckBox("Inclusion Type Round", false);
+        inclusionRoundBox.addActionListener(actionListener);
+        
+        inclusionSizeField.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				updateInclusionSize();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				updateInclusionSize();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				//updateInclusionSize();
+			}
+			void updateInclusionSize(){
+				drawArea.inclusionSize = Integer.parseInt(inclusionSizeField.getText());
+			}
+        });
+        
+        cellSizeField.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				updateCellSize();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				updateCellSize();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				//updateCellSize();
+			}
+			void updateCellSize(){
+				drawArea.size = Integer.parseInt(cellSizeField.getText());
+			}
+        });
         
         menuBar = new JMenuBar();
         menu = new JMenu("File");
         menuBar.add(menu);
-        menuItem = new JMenuItem("Import");
+        menuItem = new JMenuItem("Export");
         menuItem.addActionListener(new ActionListener() {
 
             @Override
@@ -155,7 +208,7 @@ public class SwingPaint {
             
         });
         menu.add(menuItem);
-        menuItem = new JMenuItem("Export");
+        menuItem = new JMenuItem("Import");
         menuItem.addActionListener(new ActionListener() {
 
             @Override
@@ -169,7 +222,7 @@ public class SwingPaint {
             
         });
         menu.add(menuItem);
-        menuItem = new JMenuItem("importToBMP");
+        menuItem = new JMenuItem("exportToBMP");
         menuItem.addActionListener(new ActionListener() {
 
             @Override
@@ -187,7 +240,7 @@ public class SwingPaint {
         });
         menu.add(menuItem);
         
-        menuItem = new JMenuItem("exportFromBMP");
+        menuItem = new JMenuItem("importFromBMP");
         menuItem.addActionListener(new ActionListener() {
 
             @Override
@@ -214,6 +267,9 @@ public class SwingPaint {
         list.add(periodicBox);
         list.add(cellSizeLabel);
         list.add(cellSizeField);
+        list.add(inclusionSizeLabel);
+        list.add(inclusionSizeField);
+        list.add(inclusionRoundBox);
         //list.add(recrystBtn);
         
         controls.add(randBtn);
