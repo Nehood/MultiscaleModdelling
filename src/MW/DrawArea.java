@@ -67,7 +67,7 @@ public class DrawArea extends JComponent {
 	int inclusionSize = 10;
 	boolean inclusionRound = false;
 	int rule4Probability = 10;
-	
+
 	int phase1Grains = 5;
 	boolean phase2 = false;
 
@@ -83,22 +83,31 @@ public class DrawArea extends JComponent {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (!isAlive) {
+					// System.out.println(e.getButton());
 					x = e.getX() / size;
 					y = e.getY() / size;
-					for (int i = x - inclusionSize / 2; i < x + inclusionSize / 2; i++) {
-						for (int j = y - inclusionSize / 2; j < y + inclusionSize / 2; j++) {
-							if (inclusionRound && (i - x) * (i - x) + (j - y) * (j - y) < (inclusionSize / 2)
-									* (inclusionSize / 2)) {
-								tab[i][j] = new Cell(true, i, j);
-								tab1[i][j] = tab[i][j];
-								//cellNumber++;
-							}
-							if (!inclusionRound) {
-								tab[i][j] = new Cell(true, i, j);
-								tab1[i][j] = tab[i][j];
-								//cellNumber++;
+					if (e.getButton() == 1) {
+						for (int i = x - inclusionSize / 2; i < x + inclusionSize / 2; i++) {
+							for (int j = y - inclusionSize / 2; j < y + inclusionSize / 2; j++) {
+								if (inclusionRound && (i - x) * (i - x) + (j - y) * (j - y) < (inclusionSize / 2)
+										* (inclusionSize / 2)) {
+									tab[i][j] = new Cell(true, i, j);
+									tab1[i][j] = tab[i][j];
+								}
+								if (!inclusionRound) {
+									tab[i][j] = new Cell(true, i, j);
+									tab1[i][j] = tab[i][j];
+
+								}
 							}
 						}
+					}
+					else if (e.getButton() == 3 && phase2 && colors.get(tab[x][y].ID).phase == 0) {
+						Cell cell;
+						cell = (Cell) colors.get(tab[x][y].ID);
+						cell.phase = 1;
+						cell.color = Color.BLACK;
+						colors.set(tab[x][y].ID, cell);
 					}
 					draw();
 				}
@@ -157,7 +166,7 @@ public class DrawArea extends JComponent {
 				tab1[i][j] = tab[i][j];
 			}
 		}
-		//colors = null;
+		// colors = null;
 		colors = new ArrayList<>();
 		ID = 0;
 		cellNumber = 0;
@@ -196,8 +205,7 @@ public class DrawArea extends JComponent {
 						if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
 							checkNeighbourhood(i, j);
 						}
-					}
-					else if (phase2 && tab[i][j].phase == 2 && tab[i][j].ID != -2){
+					} else if (phase2 && tab[i][j].phase == 2 && tab[i][j].ID != -2) {
 						checkNeighbourhood(i, j);
 					}
 				}
@@ -210,9 +218,10 @@ public class DrawArea extends JComponent {
 		}
 	}
 
-	//checks the neighbourhood of previosuly found cell.
-	// in phase 1 - if surrounding space is empty (ID = -1), check this space for its neighbours, to decide
-	//	what ID will this cell have.
+	// checks the neighbourhood of previosuly found cell.
+	// in phase 1 - if surrounding space is empty (ID = -1), check this space for
+	// its neighbours, to decide
+	// what ID will this cell have.
 	// in phase 2 - check if cell doesn't have phase (either 1 or 2)
 	public void checkNeighbourhood(int x, int y) {
 		Random rand = new Random();
@@ -251,11 +260,11 @@ public class DrawArea extends JComponent {
 						continue;
 					}
 				}
-				if (tab[tempX][tempY].ID == -1 || (phase2 && tab[tempX][tempY].phase == 0 )) {
+				if (tab[tempX][tempY].ID == -1 || (phase2 && tab[tempX][tempY].phase == 0)) {
 					int tmp = countNeighbours(tempX, tempY);
 					if (tmp != -1) {
-						//System.out.println(tmp);
-						//System.out.println(colors.size());
+						// System.out.println(tmp);
+						// System.out.println(colors.size());
 						tab1[tempX][tempY] = (Cell) colors.get(tmp);
 					}
 				}
@@ -711,18 +720,10 @@ public class DrawArea extends JComponent {
 		return true;
 	}
 
-	public boolean beginPhase2()
-	{
+	public void beginPhase2() {
 		phase2 = true;
-		for (int i = 0; i < phase1Grains; i++) {
-			Cell cell;
-			cell = (Cell) colors.get(i);
-			cell.phase = 1;
-			cell.color = Color.BLACK;
-			colors.set(i, cell);
-		}
-		return true;
 	}
+
 	public class Cell {
 
 		int ID;

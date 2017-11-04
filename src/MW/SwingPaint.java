@@ -39,7 +39,7 @@ import javax.swing.event.ListSelectionListener;
  */
 public class SwingPaint {
 
-	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, phase1Btn, phase2Btn;
+	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, phase2Btn;
 	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField;
 	JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel, probabilityLabel;
 	JCheckBox periodicBox, inclusionRoundBox;
@@ -58,12 +58,16 @@ public class SwingPaint {
 				drawArea.clearTables();
 			}
 			if (e.getSource() == randBtn) {
-				//drawArea.cellNumber += Integer.parseInt(cellField.getText());
 				if (Integer.parseInt(cellSizeField.getText()) > 9) {
 					cellSizeField.setText(Integer.toString(9));
 				}
 				drawArea.size = Integer.parseInt(cellSizeField.getText());
-				drawArea.random(Integer.parseInt(cellField.getText()), 0);
+				if (drawArea.phase2) {
+					drawArea.random(Integer.parseInt(cellField.getText()), 2);
+				}
+				else {
+					drawArea.random(Integer.parseInt(cellField.getText()), 0);
+				}
 			}
 			if (e.getSource() == startBtn) {
 				drawArea.isAlive = true;
@@ -103,19 +107,8 @@ public class SwingPaint {
 			if (e.getSource() == inclusionRoundBox) {
 				drawArea.inclusionRound = inclusionRoundBox.isSelected();
 			}
-			if (e.getSource() == phase1Btn) {
-				drawArea.clearTables();
-				cellSizeField.setText("1");
-				drawArea.size = Integer.parseInt(cellSizeField.getText());
-				cellField.setText("100");
-				//drawArea.cellNumber += Integer.parseInt(cellField.getText());
-				drawArea.random(Integer.parseInt(cellField.getText()), 0);
-			}
 			if (e.getSource() == phase2Btn) {
 				drawArea.beginPhase2();
-				cellField.setText("1000");
-				//drawArea.cellNumber += Integer.parseInt(cellField.getText());
-				drawArea.random(Integer.parseInt(cellField.getText()), 2);
 			}
 		}
 	};
@@ -152,8 +145,6 @@ public class SwingPaint {
 		inclusionRoundBox.addActionListener(actionListener);
 		probabilityLabel = new JLabel("Probability:");
 		probabilityField = new JTextField("10");
-		phase1Btn = new JButton("Phase 1");
-		phase1Btn.addActionListener(actionListener);
 		phase2Btn = new JButton("Phase 2");
 		phase2Btn.addActionListener(actionListener);
 
@@ -299,13 +290,11 @@ public class SwingPaint {
 		list.add(inclusionRoundBox);
 		list.add(probabilityLabel);
 		list.add(probabilityField);
-		// list.add(recrystBtn);
 
 		controls.add(clearBtn);
 		controls.add(randBtn);
 		controls.add(startBtn);
 		controls.add(stopBtn);
-		controls.add(phase1Btn);
 		controls.add(phase2Btn);
 		// controls.add(recrystBtn);
 
