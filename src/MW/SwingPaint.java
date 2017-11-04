@@ -8,6 +8,7 @@ package MW;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -38,118 +39,125 @@ import javax.swing.event.ListSelectionListener;
  */
 public class SwingPaint {
 
-    JButton randBtn, startBtn, stopBtn, recrystBtn;
-    JTextField cellField, cellSizeField, inclusionSizeField;
-    JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel;
-    JCheckBox periodicBox, inclusionRoundBox;
-    JMenuBar menuBar;
-    JMenu menu;
-    JMenuItem menuItem;
-    JList<String> surroundList;
-    String[] surrounds = {"Moore", "von Neumann"};
+	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, phase1Btn, phase2Btn;
+	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField;
+	JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel, probabilityLabel;
+	JCheckBox periodicBox, inclusionRoundBox;
+	JMenuBar menuBar;
+	JMenu menu;
+	JMenuItem menuItem;
 
-    DrawArea drawArea;
-    
-    ActionListener actionListener = new ActionListener() {
-        Thread thread = new Thread();
+	DrawArea drawArea;
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == randBtn) {
-                drawArea.cellNumber = Integer.parseInt(cellField.getText());
-                if (Integer.parseInt(cellSizeField.getText()) > 9) {
-                	cellSizeField.setText(Integer.toString(9));
-                }
-                drawArea.size = Integer.parseInt(cellSizeField.getText());
-                drawArea.random();
-            }
-            if (e.getSource() == startBtn) {
-                drawArea.isAlive = true;
-                if (thread.isAlive()) {
-                    thread.stop();
-                }
-                thread = new Thread() {
-                    @Override
-                    public void run() {
-                        drawArea.gameOfLife();
-                    }
-                };
-                thread.start();
-            }
-            
-            if (e.getSource() == recrystBtn) {
-                drawArea.isAlive = true;
-                if (thread.isAlive()) {
-                    thread.stop();
-                }
-                thread = new Thread() {
-                    @Override
-                    public void run() {
-                        drawArea.dynamicRecrystallization();
-                    }
-                };
-                thread.start();
-            }
+	ActionListener actionListener = new ActionListener() {
+		Thread thread = new Thread();
 
-            if (e.getSource() == stopBtn) {
-                drawArea.isAlive = false;
-                thread.stop();
-            }
-            if (e.getSource() == periodicBox) {
-                drawArea.periodic = periodicBox.isSelected();
-            }
-            if (e.getSource() == inclusionRoundBox) {
-                drawArea.inclusionRound = inclusionRoundBox.isSelected();
-            }
-        }
-    };
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (e.getSource() == clearBtn) {
+				drawArea.clearTables();
+			}
+			if (e.getSource() == randBtn) {
+				//drawArea.cellNumber += Integer.parseInt(cellField.getText());
+				if (Integer.parseInt(cellSizeField.getText()) > 9) {
+					cellSizeField.setText(Integer.toString(9));
+				}
+				drawArea.size = Integer.parseInt(cellSizeField.getText());
+				drawArea.random(Integer.parseInt(cellField.getText()), 0);
+			}
+			if (e.getSource() == startBtn) {
+				drawArea.isAlive = true;
+				if (thread.isAlive()) {
+					thread.stop();
+				}
+				thread = new Thread() {
+					@Override
+					public void run() {
+						drawArea.gameOfLife();
+					}
+				};
+				thread.start();
+			}
 
-    public void show() {
-        JFrame frame = new JFrame("Naiwny rozrost ziaren");
-        Container content = frame.getContentPane();
-        content.setLayout(new BorderLayout());
-        drawArea = new DrawArea();
+			if (e.getSource() == recrystBtn) {
+				drawArea.isAlive = true;
+				if (thread.isAlive()) {
+					thread.stop();
+				}
+				thread = new Thread() {
+					@Override
+					public void run() {
+						drawArea.dynamicRecrystallization();
+					}
+				};
+				thread.start();
+			}
 
-        content.add(drawArea, BorderLayout.CENTER);
+			if (e.getSource() == stopBtn) {
+				drawArea.isAlive = false;
+				thread.stop();
+			}
+			if (e.getSource() == periodicBox) {
+				drawArea.periodic = periodicBox.isSelected();
+			}
+			if (e.getSource() == inclusionRoundBox) {
+				drawArea.inclusionRound = inclusionRoundBox.isSelected();
+			}
+			if (e.getSource() == phase1Btn) {
+				drawArea.clearTables();
+				cellSizeField.setText("1");
+				drawArea.size = Integer.parseInt(cellSizeField.getText());
+				cellField.setText("100");
+				//drawArea.cellNumber += Integer.parseInt(cellField.getText());
+				drawArea.random(Integer.parseInt(cellField.getText()), 0);
+			}
+			if (e.getSource() == phase2Btn) {
+				drawArea.beginPhase2();
+				cellField.setText("1000");
+				//drawArea.cellNumber += Integer.parseInt(cellField.getText());
+				drawArea.random(Integer.parseInt(cellField.getText()), 2);
+			}
+		}
+	};
 
-        JPanel controls = new JPanel();
-        surroundList = new JList<>(surrounds);
-        surroundList.setSelectedIndex(0);
-        surroundList.addListSelectionListener(new ListSelectionListener() {
+	public void show() {
+		JFrame frame = new JFrame("Naiwny rozrost ziaren");
+		Container content = frame.getContentPane();
+		content.setLayout(new BorderLayout());
+		drawArea = new DrawArea();
 
-            @Override
-            public void valueChanged(ListSelectionEvent lse) {
-                int index = surroundList.getSelectedIndex();
-                if (index == 0) {
-                    drawArea.moore = true;
-                    drawArea.vonNeumann = false;
-                }
-                if (index == 1) {
-                    drawArea.moore = false;
-                    drawArea.vonNeumann = true;
-                }
-            }
-        });
-        cellLabel = new JLabel("Number of cells:");
-        cellField = new JTextField("1000");
-        cellSizeLabel = new JLabel("Cell Size:");
-        cellSizeField = new JTextField("1");
-        randBtn = new JButton("Random");
-        randBtn.addActionListener(actionListener);
-        startBtn = new JButton("Start");
-        startBtn.addActionListener(actionListener);
-        stopBtn = new JButton("Stop");
-        stopBtn.addActionListener(actionListener);
-        recrystBtn = new JButton("Dynamic Recrystallization");
-        recrystBtn.addActionListener(actionListener);
-        periodicBox = new JCheckBox("Periodic", true);
-        periodicBox.addActionListener(actionListener);
-        inclusionSizeLabel = new JLabel("Inclusion size:");
-        inclusionSizeField = new JTextField("10");
-        inclusionRoundBox = new JCheckBox("Inclusion Type Round", false);
-        inclusionRoundBox.addActionListener(actionListener);
-        
-        inclusionSizeField.getDocument().addDocumentListener(new DocumentListener() {
+		content.add(drawArea, BorderLayout.CENTER);
+
+		JPanel controls = new JPanel();
+
+		cellLabel = new JLabel("Number of cells:");
+		cellField = new JTextField("1000");
+		cellSizeLabel = new JLabel("Cell Size:");
+		cellSizeField = new JTextField("1");
+		clearBtn = new JButton("Clear");
+		clearBtn.addActionListener(actionListener);
+		randBtn = new JButton("Random");
+		randBtn.addActionListener(actionListener);
+		startBtn = new JButton("Start");
+		startBtn.addActionListener(actionListener);
+		stopBtn = new JButton("Stop");
+		stopBtn.addActionListener(actionListener);
+		recrystBtn = new JButton("Dynamic Recrystallization");
+		recrystBtn.addActionListener(actionListener);
+		periodicBox = new JCheckBox("Periodic", true);
+		periodicBox.addActionListener(actionListener);
+		inclusionSizeLabel = new JLabel("Inclusion size:");
+		inclusionSizeField = new JTextField("10");
+		inclusionRoundBox = new JCheckBox("Inclusion Round", false);
+		inclusionRoundBox.addActionListener(actionListener);
+		probabilityLabel = new JLabel("Probability:");
+		probabilityField = new JTextField("10");
+		phase1Btn = new JButton("Phase 1");
+		phase1Btn.addActionListener(actionListener);
+		phase2Btn = new JButton("Phase 2");
+		phase2Btn.addActionListener(actionListener);
+
+		inclusionSizeField.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
 			public void changedUpdate(DocumentEvent arg0) {
@@ -163,14 +171,14 @@ public class SwingPaint {
 
 			@Override
 			public void removeUpdate(DocumentEvent arg0) {
-				//updateInclusionSize();
 			}
-			void updateInclusionSize(){
+
+			void updateInclusionSize() {
 				drawArea.inclusionSize = Integer.parseInt(inclusionSizeField.getText());
 			}
-        });
-        
-        cellSizeField.getDocument().addDocumentListener(new DocumentListener() {
+		});
+
+		cellSizeField.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
 			public void changedUpdate(DocumentEvent arg0) {
@@ -184,108 +192,131 @@ public class SwingPaint {
 
 			@Override
 			public void removeUpdate(DocumentEvent arg0) {
-				//updateCellSize();
 			}
-			void updateCellSize(){
+
+			void updateCellSize() {
 				drawArea.size = Integer.parseInt(cellSizeField.getText());
 			}
-        });
-        
-        menuBar = new JMenuBar();
-        menu = new JMenu("File");
-        menuBar.add(menu);
-        menuItem = new JMenuItem("Export");
-        menuItem.addActionListener(new ActionListener() {
+		});
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try {
-                    drawArea.importToFile();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            
-        });
-        menu.add(menuItem);
-        menuItem = new JMenuItem("Import");
-        menuItem.addActionListener(new ActionListener() {
+		probabilityField.getDocument().addDocumentListener(new DocumentListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try {
-                    drawArea.exportFromFile();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            
-        });
-        menu.add(menuItem);
-        menuItem = new JMenuItem("exportToBMP");
-        menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				updateProbability();
+			}
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try {
-                    drawArea.importToBMP();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException e) {
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				updateProbability();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+			}
+
+			void updateProbability() {
+				drawArea.rule4Probability = Integer.parseInt(probabilityField.getText());
+			}
+		});
+
+		menuBar = new JMenuBar();
+		menu = new JMenu("File");
+		menuBar.add(menu);
+		menuItem = new JMenuItem("Export");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				try {
+					drawArea.importToFile();
+				} catch (FileNotFoundException ex) {
+					Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+				}
+			}
+
+		});
+		menu.add(menuItem);
+		menuItem = new JMenuItem("Import");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				try {
+					drawArea.exportFromFile();
+				} catch (FileNotFoundException ex) {
+					Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+				}
+			}
+
+		});
+		menu.add(menuItem);
+		menuItem = new JMenuItem("exportToBMP");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				try {
+					drawArea.importToBMP();
+				} catch (FileNotFoundException ex) {
+					Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-            }
-            
-        });
-        menu.add(menuItem);
-        
-        menuItem = new JMenuItem("importFromBMP");
-        menuItem.addActionListener(new ActionListener() {
+			}
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try {
-                    drawArea.exportFromBMP();
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException e) {
+		});
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem("importFromBMP");
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				try {
+					drawArea.exportFromBMP();
+				} catch (FileNotFoundException ex) {
+					Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-            }
-            
-        });
-        menu.add(menuItem);
+			}
 
-        JPanel list = new JPanel();
-        JPanel neighbours = new JPanel();
-        neighbours.add(surroundList);
-        
-        list.add(cellLabel);
-        list.add(cellField);
-        list.add(periodicBox);
-        list.add(cellSizeLabel);
-        list.add(cellSizeField);
-        list.add(inclusionSizeLabel);
-        list.add(inclusionSizeField);
-        list.add(inclusionRoundBox);
-        //list.add(recrystBtn);
-        
-        controls.add(randBtn);
-        controls.add(startBtn);
-        controls.add(stopBtn);
-        //controls.add(recrystBtn);
-        
-        content.add(neighbours, BorderLayout.WEST);
-        content.add(list, BorderLayout.NORTH);
-        content.add(controls, BorderLayout.SOUTH);
+		});
+		menu.add(menuItem);
 
-        frame.setJMenuBar(menuBar);
-        frame.setSize(785, 750);
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-    }
+		JPanel list = new JPanel();
+
+		list.add(cellLabel);
+		list.add(cellField);
+		list.add(periodicBox);
+		list.add(cellSizeLabel);
+		list.add(cellSizeField);
+		list.add(inclusionSizeLabel);
+		list.add(inclusionSizeField);
+		list.add(inclusionRoundBox);
+		list.add(probabilityLabel);
+		list.add(probabilityField);
+		// list.add(recrystBtn);
+
+		controls.add(clearBtn);
+		controls.add(randBtn);
+		controls.add(startBtn);
+		controls.add(stopBtn);
+		controls.add(phase1Btn);
+		controls.add(phase2Btn);
+		// controls.add(recrystBtn);
+
+		content.add(list, BorderLayout.NORTH);
+		content.add(controls, BorderLayout.SOUTH);
+
+		frame.setJMenuBar(menuBar);
+		frame.setSize(650, 750);
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+	}
 
 }

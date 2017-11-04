@@ -48,7 +48,6 @@ public class DrawArea extends JComponent {
 	boolean isAlive;
 	boolean periodic = true;
 	boolean moore = true;
-	boolean vonNeumann = false;
 	int cellNumber = 0;
 	int los = 0;
 	int numberRecrystallized = 0;
@@ -68,6 +67,9 @@ public class DrawArea extends JComponent {
 	int inclusionSize = 10;
 	boolean inclusionRound = false;
 	int rule4Probability = 10;
+	
+	int phase1Grains = 5;
+	boolean phase2 = false;
 
 	public DrawArea() {
 		setDoubleBuffered(true);
@@ -89,38 +91,17 @@ public class DrawArea extends JComponent {
 									* (inclusionSize / 2)) {
 								tab[i][j] = new Cell(true, i, j);
 								tab1[i][j] = tab[i][j];
-								colors.add(tab[x][y]);
-								cellNumber++;
+								//cellNumber++;
 							}
 							if (!inclusionRound) {
 								tab[i][j] = new Cell(true, i, j);
 								tab1[i][j] = tab[i][j];
-								colors.add(tab[x][y]);
-								cellNumber++;
+								//cellNumber++;
 							}
 						}
 					}
 					draw();
 				}
-			}
-		});
-
-		addMouseMotionListener(new MouseMotionAdapter() {
-
-			// int x;
-			// int y;
-
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				// if (!isAlive) {
-				// x = e.getX() / size;
-				// y = e.getY() / size;
-				// tab[x][y] = new Cell(true, x, y);
-				// tab1[x][y] = tab[x][y];
-				// colors.add(tab[x][y]);
-				// cellNumber++;
-				// draw();
-				// }
 			}
 		});
 	}
@@ -168,42 +149,55 @@ public class DrawArea extends JComponent {
 	public void clearTables() {
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
-				if (tab[i][j].ID == -2) {
-					continue;
-				}
+				// if (tab[i][j].ID == -2) {
+				// continue;
+				// }
 				tab[i][j].ID = -1;
 				tab[i][j].color = Color.WHITE;
 				tab1[i][j] = tab[i][j];
 			}
 		}
-		colors = null;
+		//colors = null;
+		colors = new ArrayList<>();
 		ID = 0;
+		cellNumber = 0;
+		phase2 = false;
 		draw();
 	}
 
-	public void random() {
-		clearTables();
+	public void random(int number, int phase) {
 		Random rand = new Random();
-		colors = new ArrayList<>();
 		cells = cellsMax / size;
-		for (int i = 0; i < cellNumber; i++) {
+		for (int i = 0; i < number; i++) {
 			int x = rand.nextInt(cells);
 			int y = rand.nextInt(cells);
-			if (tab[x][y].ID == -1) {
+			if (tab[x][y].ID == -1 || phase2 && tab[x][y].phase != 1) {
 				tab[x][y] = new Cell(ID++, x, y);
 				tab1[x][y] = tab[x][y];
 				colors.add(tab[x][y]);
+				cellNumber++;
+				Cell cell;
+				cell = (Cell) colors.get(tab[x][y].ID);
+				cell.phase = phase;
+				colors.set(tab[x][y].ID, cell);
 			}
 		}
 		draw();
 	}
 
+	// 1st phase - if finds cell, checks its neighbourhood for potential growth
+	// 2nd phase - if cell isn't phase one or inclusion - growth
 	public void gameOfLife() {
 		while (isAlive) {
 			draw();
 			for (int i = 0; i < cells; i++) {
 				for (int j = 0; j < cells; j++) {
-					if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
+					if (!phase2) {
+						if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
+							checkNeighbourhood(i, j);
+						}
+					}
+					else if (phase2 && tab[i][j].phase == 2 && tab[i][j].ID != -2){
 						checkNeighbourhood(i, j);
 					}
 				}
@@ -216,6 +210,10 @@ public class DrawArea extends JComponent {
 		}
 	}
 
+	//checks the neighbourhood of previosuly found cell.
+	// in phase 1 - if surrounding space is empty (ID = -1), check this space for its neighbours, to decide
+	//	what ID will this cell have.
+	// in phase 2 - check if cell doesn't have phase (either 1 or 2)
 	public void checkNeighbourhood(int x, int y) {
 		Random rand = new Random();
 		los = rand.nextInt(2);
@@ -223,18 +221,6 @@ public class DrawArea extends JComponent {
 			for (int j = y - 1; j <= y + 1; j++) {
 				if (i == x && j == y) {
 					continue;
-				}
-				if (vonNeumann) {
-					if (i == (x - 1)) {
-						if ((j == (y - 1)) || (j == (y + 1))) {
-							continue;
-						}
-					}
-					if (i == (x + 1)) {
-						if ((j == (y - 1)) || (j == (y + 1))) {
-							continue;
-						}
-					}
 				}
 				int tempX = i;
 				int tempY = j;
@@ -265,9 +251,11 @@ public class DrawArea extends JComponent {
 						continue;
 					}
 				}
-				if (tab[tempX][tempY].ID == -1) {
+				if (tab[tempX][tempY].ID == -1 || (phase2 && tab[tempX][tempY].phase == 0 )) {
 					int tmp = countNeighbours(tempX, tempY);
 					if (tmp != -1) {
+						//System.out.println(tmp);
+						//System.out.println(colors.size());
 						tab1[tempX][tempY] = (Cell) colors.get(tmp);
 					}
 				}
@@ -319,10 +307,10 @@ public class DrawArea extends JComponent {
 						continue;
 					}
 				}
-				if (tab[tempX][tempY].ID == -2) {
+				if (tab[tempX][tempY].ID == -2 || (phase2 && tab[tempX][tempY].phase != 2)) {
 					continue;
 				}
-				if (tab[tempX][tempY].ID != -1) {
+				if (tab[tempX][tempY].ID != -1 || (phase2 && tab[tempX][tempY].phase == 2)) {
 					temp[tab[tempX][tempY].ID]++;
 					if (tempX == x) {
 						tempRule2[tab[tempX][tempY].ID]++;
@@ -361,7 +349,7 @@ public class DrawArea extends JComponent {
 					if (probability <= rule4Probability) {
 						int max = temp[0];
 						for (int k = 0; k < cellNumber; k++) {
-							if (temp[k] > max) {
+							if (temp[k] >= max) {
 								max = temp[k];
 								result = k;
 							}
@@ -471,18 +459,6 @@ public class DrawArea extends JComponent {
 			for (int j = y - 1; j <= y + 1; j++) {
 				if (i == x && j == y) {
 					continue;
-				}
-				if (vonNeumann) {
-					if (i == (x - 1)) {
-						if ((j == (y - 1)) || (j == (y + 1))) {
-							continue;
-						}
-					}
-					if (i == (x + 1)) {
-						if ((j == (y - 1)) || (j == (y + 1))) {
-							continue;
-						}
-					}
 				}
 				int tempX = i;
 				int tempY = j;
@@ -735,6 +711,18 @@ public class DrawArea extends JComponent {
 		return true;
 	}
 
+	public boolean beginPhase2()
+	{
+		phase2 = true;
+		for (int i = 0; i < phase1Grains; i++) {
+			Cell cell;
+			cell = (Cell) colors.get(i);
+			cell.phase = 1;
+			cell.color = Color.BLACK;
+			colors.set(i, cell);
+		}
+		return true;
+	}
 	public class Cell {
 
 		int ID;
@@ -743,6 +731,7 @@ public class DrawArea extends JComponent {
 		public int y;
 		public double dislocations;
 		public boolean recristallized = false;
+		public int phase = 0;
 
 		public Cell(int id, int x, int y) {
 			Random rand = new Random();
