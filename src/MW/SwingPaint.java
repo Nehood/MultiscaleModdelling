@@ -39,10 +39,10 @@ import javax.swing.event.ListSelectionListener;
  */
 public class SwingPaint {
 
-	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, phase2Btn;
+	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn;
 	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField;
 	JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel, probabilityLabel;
-	JCheckBox periodicBox, inclusionRoundBox;
+	JCheckBox periodicBox, inclusionRoundBox, phase2Box;
 	JMenuBar menuBar;
 	JMenu menu;
 	JMenuItem menuItem;
@@ -107,8 +107,8 @@ public class SwingPaint {
 			if (e.getSource() == inclusionRoundBox) {
 				drawArea.inclusionRound = inclusionRoundBox.isSelected();
 			}
-			if (e.getSource() == phase2Btn) {
-				drawArea.beginPhase2();
+			if (e.getSource() == phase2Box) {
+				drawArea.phase2 = phase2Box.isSelected();
 			}
 		}
 	};
@@ -145,8 +145,8 @@ public class SwingPaint {
 		inclusionRoundBox.addActionListener(actionListener);
 		probabilityLabel = new JLabel("Probability:");
 		probabilityField = new JTextField("10");
-		phase2Btn = new JButton("Phase 2");
-		phase2Btn.addActionListener(actionListener);
+		phase2Box = new JCheckBox("Phase 2", false);
+		phase2Box.addActionListener(actionListener);
 
 		inclusionSizeField.getDocument().addDocumentListener(new DocumentListener() {
 
@@ -295,7 +295,7 @@ public class SwingPaint {
 		controls.add(randBtn);
 		controls.add(startBtn);
 		controls.add(stopBtn);
-		controls.add(phase2Btn);
+		controls.add(phase2Box);
 		// controls.add(recrystBtn);
 
 		content.add(list, BorderLayout.NORTH);

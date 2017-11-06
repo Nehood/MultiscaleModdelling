@@ -68,7 +68,6 @@ public class DrawArea extends JComponent {
 	boolean inclusionRound = false;
 	int rule4Probability = 10;
 
-	int phase1Grains = 5;
 	boolean phase2 = false;
 
 	public DrawArea() {
@@ -83,7 +82,6 @@ public class DrawArea extends JComponent {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (!isAlive) {
-					// System.out.println(e.getButton());
 					x = e.getX() / size;
 					y = e.getY() / size;
 					if (e.getButton() == 1) {
@@ -158,15 +156,11 @@ public class DrawArea extends JComponent {
 	public void clearTables() {
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
-				// if (tab[i][j].ID == -2) {
-				// continue;
-				// }
 				tab[i][j].ID = -1;
 				tab[i][j].color = Color.WHITE;
 				tab1[i][j] = tab[i][j];
 			}
 		}
-		// colors = null;
 		colors = new ArrayList<>();
 		ID = 0;
 		cellNumber = 0;
@@ -263,8 +257,6 @@ public class DrawArea extends JComponent {
 				if (tab[tempX][tempY].ID == -1 || (phase2 && tab[tempX][tempY].phase == 0)) {
 					int tmp = countNeighbours(tempX, tempY);
 					if (tmp != -1) {
-						// System.out.println(tmp);
-						// System.out.println(colors.size());
 						tab1[tempX][tempY] = (Cell) colors.get(tmp);
 					}
 				}
@@ -435,7 +427,6 @@ public class DrawArea extends JComponent {
 			draw();
 			double tempRho = A_rho / B_rho + (1 - A_rho / B_rho) * Math.exp(-B_rho * t);
 			double dislocations = tempRho - Rho;
-			System.out.println("Krok czasowy: " + t + " | dyslokacje: " + dislocations);
 			Rho = tempRho;
 			dislocationCannon(dislocations);
 			for (int i = 0; i < cells; i++) {
@@ -581,7 +572,6 @@ public class DrawArea extends JComponent {
 	}
 
 	public void recrystallize(int x, int y) {
-		// System.out.println("Tworze zarodek!");
 		tab1[x][y] = new Cell(ID++, true);
 		tab[x][y] = tab1[x][y];
 		cellNumber++;
@@ -608,7 +598,6 @@ public class DrawArea extends JComponent {
 				}
 			}
 		}
-		System.out.println("Pozostale dyslokacje:" + dislocations);
 		double N = 8.0;
 		Random rand = new Random();
 		cellDislocations = dislocations / N;
@@ -718,10 +707,6 @@ public class DrawArea extends JComponent {
 		image = tmpImage;
 		draw();
 		return true;
-	}
-
-	public void beginPhase2() {
-		phase2 = true;
 	}
 
 	public class Cell {
