@@ -99,13 +99,16 @@ public class DrawArea extends JComponent {
 								}
 							}
 						}
-					}
-					else if (e.getButton() == 3 && phase2 && colors.get(tab[x][y].ID).phase == 0) {
-						Cell cell;
-						cell = (Cell) colors.get(tab[x][y].ID);
-						cell.phase = 1;
-						cell.color = Color.BLACK;
-						colors.set(tab[x][y].ID, cell);
+					} else if (e.getButton() == 3 && phase2) {
+						if (tab[x][y].ID != -2 || tab[x][y].ID != -1) {
+							if (colors.get(tab[x][y].ID).phase == 0) {
+								Cell cell;
+								cell = (Cell) colors.get(tab[x][y].ID);
+								cell.phase = 1;
+								cell.color = Color.BLACK;
+								colors.set(tab[x][y].ID, cell);
+							}
+						}
 					}
 					draw();
 				}
@@ -174,7 +177,7 @@ public class DrawArea extends JComponent {
 		for (int i = 0; i < number; i++) {
 			int x = rand.nextInt(cells);
 			int y = rand.nextInt(cells);
-			if (tab[x][y].ID == -1 || phase2 && tab[x][y].phase != 1) {
+			if (tab[x][y].ID == -1 || phase2 && tab[x][y].phase != 1 && tab[x][y].ID != 2) {
 				tab[x][y] = new Cell(ID++, x, y);
 				tab1[x][y] = tab[x][y];
 				colors.add(tab[x][y]);
@@ -254,7 +257,7 @@ public class DrawArea extends JComponent {
 						continue;
 					}
 				}
-				if (tab[tempX][tempY].ID == -1 || (phase2 && tab[tempX][tempY].phase == 0)) {
+				if (tab[tempX][tempY].ID == -1 || (phase2 && tab[tempX][tempY].phase == 0 && tab[tempX][tempY].ID != -2)) {
 					int tmp = countNeighbours(tempX, tempY);
 					if (tmp != -1) {
 						tab1[tempX][tempY] = (Cell) colors.get(tmp);
