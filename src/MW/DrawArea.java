@@ -12,7 +12,6 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
@@ -38,8 +37,6 @@ public class DrawArea extends JComponent {
 	int cells = cellsMax / size;
 	Cell[][] tab = new Cell[cells][cells];
 	Cell[][] tab1 = new Cell[cells][cells];
-	double[][] disTab = new double[cells][cells];
-	double[][] disTab1 = new double[cells][cells];
 
 	List<Cell> colors;
 	List<Cell> colorsRecrystallized;
@@ -54,21 +51,12 @@ public class DrawArea extends JComponent {
 	private Image image;
 	private Graphics2D g2;
 
-	double Rho = 0.0;
-	double Sigma = 0.0;
-	// Rho critical = 4,21584E+12/(cells*cells);
-	double Rho_critical = 7494826.92;
-	double A_rho = 86710969050178.5;
-	double A_sigma = 0.000000000257;
-	double B_rho = 9.41268203527779;
-	double B_sigma = 80000000000.0;
-	double dTau = 0.001;
-	double time = 0.0;
 	int inclusionSize = 10;
 	boolean inclusionRound = false;
 	int rule4Probability = 10;
 
 	boolean phase2 = false;
+	boolean phase3 = false;
 
 	public DrawArea() {
 		setDoubleBuffered(true);
@@ -105,7 +93,16 @@ public class DrawArea extends JComponent {
 								Cell cell;
 								cell = (Cell) colors.get(tab[x][y].ID);
 								cell.phase = 1;
-								cell.color = Color.BLACK;
+								colors.set(tab[x][y].ID, cell);
+							}
+						}
+					} else if (e.getButton() == 3 && phase3) {
+						if (tab[x][y].ID != -2 || tab[x][y].ID != -1) {
+							if (colors.get(tab[x][y].ID).phase == 0) {
+								Cell cell;
+								cell = (Cell) colors.get(tab[x][y].ID);
+								cell.phase = 3;
+								cell.color = Color.MAGENTA;
 								colors.set(tab[x][y].ID, cell);
 							}
 						}
@@ -159,9 +156,19 @@ public class DrawArea extends JComponent {
 	public void clearTables() {
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
-				tab[i][j].ID = -1;
-				tab[i][j].color = Color.WHITE;
-				tab1[i][j] = tab[i][j];
+				if (phase3 && tab[i][j].ID != -1) {
+					if (colors.get(tab[i][j].ID).phase == 3) {
+						continue;
+					}else {
+						tab[i][j].ID = -1;
+						tab[i][j].color = Color.WHITE;
+						tab1[i][j] = tab[i][j];
+					}
+				} else {
+					tab[i][j].ID = -1;
+					tab[i][j].color = Color.WHITE;
+					tab1[i][j] = tab[i][j];
+				}
 			}
 		}
 		colors = new ArrayList<>();
@@ -257,7 +264,8 @@ public class DrawArea extends JComponent {
 						continue;
 					}
 				}
-				if (tab[tempX][tempY].ID == -1 || (phase2 && tab[tempX][tempY].phase == 0 && tab[tempX][tempY].ID != -2)) {
+				if (tab[tempX][tempY].ID == -1
+						|| (phase2 && tab[tempX][tempY].phase == 0 && tab[tempX][tempY].ID != -2)) {
 					int tmp = countNeighbours(tempX, tempY);
 					if (tmp != -1) {
 						tab1[tempX][tempY] = (Cell) colors.get(tmp);
@@ -409,212 +417,6 @@ public class DrawArea extends JComponent {
 		return -1;
 	}
 
-	private void growSeed() {
-		Random rand = new Random();
-		for (int i = 0; i < 100; i++) {
-			int x = rand.nextInt(cells);
-			int y = rand.nextInt(cells);
-			if (tab[x][y].ID == -1) {
-				tab[x][y] = new Cell(ID++, x, y);
-				tab1[x][y] = tab[x][y];
-				colors.add(tab[x][y]);
-				cellNumber++;
-				break;
-			}
-		}
-	}
-
-	public void dynamicRecrystallization() {
-		colorsRecrystallized = new ArrayList<>();
-		for (double t = time; t < 0.200; t += dTau) {
-			draw();
-			double tempRho = A_rho / B_rho + (1 - A_rho / B_rho) * Math.exp(-B_rho * t);
-			double dislocations = tempRho - Rho;
-			Rho = tempRho;
-			dislocationCannon(dislocations);
-			for (int i = 0; i < cells; i++) {
-				for (int j = 0; j < cells; j++) {
-					if (!tab[i][j].recristallized) {
-						if (disTab[i][j] > Rho_critical) {
-							recrystallize(i, j);
-						}
-					}
-				}
-			}
-			for (int i = 0; i < cells; i++) {
-				for (int j = 0; j < cells; j++) {
-					if (tab[i][j].recristallized) {
-						recrystallizeNeighbours(i, j);
-					}
-				}
-			}
-			for (int i = 0; i < cells; i++) {
-				for (int j = 0; j < cells; j++) {
-					tab[i][j] = tab1[i][j];
-				}
-			}
-			// }
-		}
-	}
-
-	public void recrystallizeNeighbours(int x, int y) {
-		for (int i = x - 1; i <= x + 1; i++) {
-			for (int j = y - 1; j <= y + 1; j++) {
-				if (i == x && j == y) {
-					continue;
-				}
-				int tempX = i;
-				int tempY = j;
-				if (periodic) {
-					if (i < 0) {
-						tempX = cells - 1;
-					}
-					if (j < 0) {
-						tempY = cells - 1;
-					}
-					if (i == cells) {
-						tempX = 0;
-					}
-					if (j == cells) {
-						tempY = 0;
-					}
-				} else {
-					if (i < 0) {
-						continue;
-					}
-					if (j < 0) {
-						continue;
-					}
-					if (i == cells) {
-						continue;
-					}
-					if (j == cells) {
-						continue;
-					}
-				}
-				if (!tab1[tempX][tempY].recristallized) {
-					int tmp = neighboursRecrystallized(tempX, tempY);
-					tab1[tempX][tempY] = (Cell) colors.get(tmp);
-					disTab1[x][y] = 0.0;
-					disTab[x][y] = 0.0;
-				}
-			}
-		}
-	}
-
-	public int neighboursRecrystallized(int x, int y) {
-		int result = 0;
-		int temp[] = new int[cellNumber];
-		for (int i = 0; i < cellNumber; i++) {
-			temp[i] = 0;
-		}
-		for (int i = x - 1; i <= x + 1; i++) {
-			for (int j = y - 1; j <= y + 1; j++) {
-				if (i == x && j == y) {
-					continue;
-				}
-				int tempX = i;
-				int tempY = j;
-				if (periodic) {
-					if (i < 0) {
-						tempX = cells - 1;
-					}
-					if (j < 0) {
-						tempY = cells - 1;
-					}
-					if (i == cells) {
-						tempX = 0;
-					}
-					if (j == cells) {
-						tempY = 0;
-					}
-				} else {
-					if (i < 0) {
-						continue;
-					}
-					if (j < 0) {
-						continue;
-					}
-					if (i == cells) {
-						continue;
-					}
-					if (j == cells) {
-						continue;
-					}
-				}
-				if (tab[tempX][tempY].recristallized) {
-					temp[tab[tempX][tempY].ID]++;
-				}
-			}
-		}
-		int max = temp[0];
-		for (int k = 1; k < cellNumber; k++) {
-			if (temp[k] > max) {
-				max = temp[k];
-				result = k;
-			}
-		}
-		int ileMax = 0;
-		for (int k = 0; k < cellNumber; k++) {
-			if (temp[k] == max) {
-				ileMax++;
-			}
-		}
-		if (ileMax != 1) {
-			int temp1[] = new int[ileMax];
-			int iter = 0;
-			for (int k = 0; k < cellNumber; k++) {
-				if (temp[k] == max) {
-					temp1[iter++] = k;
-				}
-			}
-			Random rand = new Random();
-			result = temp1[rand.nextInt(ileMax)];
-		}
-		return result;
-	}
-
-	public void recrystallize(int x, int y) {
-		tab1[x][y] = new Cell(ID++, true);
-		tab[x][y] = tab1[x][y];
-		cellNumber++;
-		colors.add(tab[x][y]);
-		disTab1[x][y] = 0.0;
-		disTab[x][y] = 0.0;
-	}
-
-	public void dislocationCannon(double dis) {
-		double dislocations = dis;
-		double cellDislocations = dislocations / (cells * cells);
-		for (int i = 0; i < cells; i++) {
-			for (int j = 0; j < cells; j++) {
-				if (isBorder(i, j)) {
-					double tempDislocations = 0.8 * cellDislocations;
-					disTab1[i][j] += tempDislocations;
-					disTab[i][j] = disTab1[i][j];
-					dislocations -= tempDislocations;
-				} else {
-					double tempDislocations = 0.2 * cellDislocations;
-					disTab1[i][j] += tempDislocations;
-					disTab[i][j] = disTab1[i][j];
-					dislocations -= tempDislocations;
-				}
-			}
-		}
-		double N = 8.0;
-		Random rand = new Random();
-		cellDislocations = dislocations / N;
-		while (dislocations > cellDislocations) {
-			int x = rand.nextInt(cells);
-			int y = rand.nextInt(cells);
-			if (isBorder(x, y)) {
-				disTab[x][y] += cellDislocations;
-				disTab1[x][y] += cellDislocations;
-				dislocations -= cellDislocations;
-			}
-		}
-	}
-
 	public boolean isBorder(int x, int y) {
 		boolean state = false;
 		for (int i = x - 1; i <= x + 1; i++) {
@@ -659,8 +461,48 @@ public class DrawArea extends JComponent {
 		return state;
 	}
 
+	public void borders() {
+		int bordersCounter = 0;
+		int grainsCounter = 0;
+		double result = 0.0;
+		for (int i = 0; i < cells; i++) {
+			for (int j = 0; j < cells; j++) {
+				if (isBorder(i, j)) {
+					tab1[i][j] = new Cell(true, i, j);
+					bordersCounter++;
+				} else {
+					grainsCounter++;
+				}
+			}
+		}
+		for (int i = 0; i < cells; i++) {
+			for (int j = 0; j < cells; j++) {
+				tab[i][j] = tab1[i][j];
+			}
+		}
+		result = (double) bordersCounter / (double) (bordersCounter + grainsCounter);
+		System.out.println("Stosunek granic do ziaren: ");
+		System.out.println(result);
+		draw();
+	}
+
+	public void clearBorders() {
+		for (int i = 0; i < cells; i++) {
+			for (int j = 0; j < cells; j++) {
+				if (tab[i][j].ID != -2) {
+					tab1[i][j] = new Cell();
+				}
+			}
+		}
+		for (int i = 0; i < cells; i++) {
+			for (int j = 0; j < cells; j++) {
+				tab[i][j] = tab1[i][j];
+			}
+		}
+		draw();
+	}
+
 	public boolean importToFile() throws FileNotFoundException {
-		File file = new File("temp.txt");
 		PrintWriter save = new PrintWriter("temp.txt");
 		save.println(cells + " " + size);
 		for (int i = 0; i < cells; i++) {

@@ -7,22 +7,16 @@ package MW;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -30,8 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 /**
  *
@@ -39,10 +31,10 @@ import javax.swing.event.ListSelectionListener;
  */
 public class SwingPaint {
 
-	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn;
+	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, bordersBtn, clearBordersBtn;
 	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField;
 	JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel, probabilityLabel;
-	JCheckBox periodicBox, inclusionRoundBox, phase2Box;
+	JCheckBox periodicBox, inclusionRoundBox, phase2Box, phase3Box;
 	JMenuBar menuBar;
 	JMenu menu;
 	JMenuItem menuItem;
@@ -64,8 +56,7 @@ public class SwingPaint {
 				drawArea.size = Integer.parseInt(cellSizeField.getText());
 				if (drawArea.phase2) {
 					drawArea.random(Integer.parseInt(cellField.getText()), 2);
-				}
-				else {
+				} else {
 					drawArea.random(Integer.parseInt(cellField.getText()), 0);
 				}
 			}
@@ -78,20 +69,6 @@ public class SwingPaint {
 					@Override
 					public void run() {
 						drawArea.gameOfLife();
-					}
-				};
-				thread.start();
-			}
-
-			if (e.getSource() == recrystBtn) {
-				drawArea.isAlive = true;
-				if (thread.isAlive()) {
-					thread.stop();
-				}
-				thread = new Thread() {
-					@Override
-					public void run() {
-						drawArea.dynamicRecrystallization();
 					}
 				};
 				thread.start();
@@ -110,6 +87,16 @@ public class SwingPaint {
 			if (e.getSource() == phase2Box) {
 				drawArea.phase2 = phase2Box.isSelected();
 			}
+			if (e.getSource() == phase3Box) {
+				drawArea.phase3 = phase3Box.isSelected();
+			}
+			if (e.getSource() == bordersBtn) {
+				drawArea.borders();
+			}
+			if (e.getSource() == clearBordersBtn) {
+				drawArea.clearBorders();
+			}
+
 		}
 	};
 
@@ -147,6 +134,12 @@ public class SwingPaint {
 		probabilityField = new JTextField("10");
 		phase2Box = new JCheckBox("Phase 2", false);
 		phase2Box.addActionListener(actionListener);
+		phase3Box = new JCheckBox("Phase 3", false);
+		phase3Box.addActionListener(actionListener);
+		bordersBtn = new JButton("Borders");
+		bordersBtn.addActionListener(actionListener);
+		clearBordersBtn = new JButton("clear Borders");
+		clearBordersBtn.addActionListener(actionListener);
 
 		inclusionSizeField.getDocument().addDocumentListener(new DocumentListener() {
 
@@ -252,7 +245,6 @@ public class SwingPaint {
 				} catch (FileNotFoundException ex) {
 					Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -270,7 +262,6 @@ public class SwingPaint {
 				} catch (FileNotFoundException ex) {
 					Logger.getLogger(SwingPaint.class.getName()).log(Level.SEVERE, null, ex);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -296,7 +287,9 @@ public class SwingPaint {
 		controls.add(startBtn);
 		controls.add(stopBtn);
 		controls.add(phase2Box);
-		// controls.add(recrystBtn);
+		controls.add(phase3Box);
+		controls.add(bordersBtn);
+		controls.add(clearBordersBtn);
 
 		content.add(list, BorderLayout.NORTH);
 		content.add(controls, BorderLayout.SOUTH);
