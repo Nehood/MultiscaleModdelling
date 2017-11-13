@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package MW;
 
 import java.awt.Color;
@@ -27,10 +22,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author Leszek
- */
 public class DrawArea extends JComponent {
 	int cellsMax = 650;
 	int size = 1;
@@ -39,12 +30,9 @@ public class DrawArea extends JComponent {
 	Cell[][] tab1 = new Cell[cells][cells];
 
 	List<Cell> colors;
-	List<Cell> colorsRecrystallized;
 	static int ID = 0;
-	static int ID2 = 0;
 	boolean isAlive;
 	boolean periodic = true;
-	boolean moore = true;
 	int cellNumber = 0;
 	int los = 0;
 	int numberRecrystallized = 0;
@@ -159,7 +147,7 @@ public class DrawArea extends JComponent {
 				if (phase3 && tab[i][j].ID != -1) {
 					if (colors.get(tab[i][j].ID).phase == 3) {
 						continue;
-					}else {
+					} else {
 						tab[i][j].ID = -1;
 						tab[i][j].color = Color.WHITE;
 						tab1[i][j] = tab[i][j];
@@ -481,7 +469,7 @@ public class DrawArea extends JComponent {
 			}
 		}
 		result = (double) bordersCounter / (double) (bordersCounter + grainsCounter);
-		System.out.println("Stosunek granic do ziaren: ");
+		System.out.println("Borders to grains ratio: ");
 		System.out.println(result);
 		draw();
 	}
@@ -503,7 +491,9 @@ public class DrawArea extends JComponent {
 	}
 
 	public boolean importToFile() throws FileNotFoundException {
-		PrintWriter save = new PrintWriter("temp.txt");
+		String filename;
+		filename = JOptionPane.showInputDialog("filename:");
+		PrintWriter save = new PrintWriter(filename + ".txt");
 		save.println(cells + " " + size);
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
@@ -516,8 +506,10 @@ public class DrawArea extends JComponent {
 	}
 
 	public boolean exportFromFile() throws FileNotFoundException {
+		String filename;
+		filename = JOptionPane.showInputDialog("filename:");
 		createTables();
-		File file = new File("temp.txt");
+		File file = new File(filename + ".txt");
 		Scanner from = new Scanner(file);
 		cells = from.nextInt();
 		size = from.nextInt();
@@ -527,6 +519,7 @@ public class DrawArea extends JComponent {
 				tab[i][j].y = from.nextInt();
 				tab[i][j].ID = from.nextInt();
 				tab[i][j].color = new Color(from.nextInt(), from.nextInt(), from.nextInt());
+				tab[i][j].phase = 0;
 			}
 		}
 		from.close();

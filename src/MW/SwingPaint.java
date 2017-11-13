@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package MW;
 
 import java.awt.BorderLayout;
@@ -25,10 +20,6 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-/**
- *
- * @author Leszek
- */
 public class SwingPaint {
 
 	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, bordersBtn, clearBordersBtn;
@@ -101,7 +92,7 @@ public class SwingPaint {
 	};
 
 	public void show() {
-		JFrame frame = new JFrame("Naiwny rozrost ziaren");
+		JFrame frame = new JFrame("Simple Grain Growth");
 		Container content = frame.getContentPane();
 		content.setLayout(new BorderLayout());
 		drawArea = new DrawArea();
