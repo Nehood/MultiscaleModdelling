@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -23,6 +24,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 
 public class DrawArea extends JComponent {
+	private static final long serialVersionUID = 4377506826028456397L;
 	int cellsMax = 650;
 	int size = 1;
 	int cells = cellsMax / size;
@@ -45,6 +47,11 @@ public class DrawArea extends JComponent {
 
 	boolean phase2 = false;
 	boolean phase3 = false;
+
+	boolean MonteCarlo = true;
+	boolean[][] visited = new boolean[cells][cells];
+	int MCSiteration = 0;
+	int MCS = 100;
 
 	public DrawArea() {
 		setDoubleBuffered(true);
@@ -163,42 +170,141 @@ public class DrawArea extends JComponent {
 		ID = 0;
 		cellNumber = 0;
 		phase2 = false;
+		MCSiteration = 0;
 		draw();
 	}
 
 	public void random(int number, int phase) {
 		Random rand = new Random();
-		cells = cellsMax / size;
-		for (int i = 0; i < number; i++) {
-			int x = rand.nextInt(cells);
-			int y = rand.nextInt(cells);
-			if (tab[x][y].ID == -1 || phase2 && tab[x][y].phase != 1 && tab[x][y].ID != 2) {
-				tab[x][y] = new Cell(ID++, x, y);
-				tab1[x][y] = tab[x][y];
-				colors.add(tab[x][y]);
+		if (MonteCarlo) {
+			cells = cellsMax / size;
+			for (int i = 0; i < number; i++) {
+				colors.add(new Cell(ID++, 0, 0));
 				cellNumber++;
-				Cell cell;
-				cell = (Cell) colors.get(tab[x][y].ID);
-				cell.phase = phase;
-				colors.set(tab[x][y].ID, cell);
+			}
+			for (int i = 0; i < cells; i++) {
+				for (int j = 0; j < cells; j++) {
+					int ID = rand.nextInt(cellNumber);
+					tab[i][j] = colors.get(ID);
+					tab1[i][j] = tab[i][j];
+				}
+			}
+		} else {
+			cells = cellsMax / size;
+			for (int i = 0; i < number; i++) {
+				int x = rand.nextInt(cells);
+				int y = rand.nextInt(cells);
+				if (tab[x][y].ID == -1 || phase2 && tab[x][y].phase != 1 && tab[x][y].ID != 2) {
+					tab[x][y] = new Cell(ID++, x, y);
+					tab1[x][y] = tab[x][y];
+					colors.add(tab[x][y]);
+					cellNumber++;
+					Cell cell;
+					cell = (Cell) colors.get(tab[x][y].ID);
+					cell.phase = phase;
+					colors.set(tab[x][y].ID, cell);
+				}
 			}
 		}
+
 		draw();
 	}
 
 	// 1st phase - if finds cell, checks its neighbourhood for potential growth
 	// 2nd phase - if cell isn't phase one or inclusion - growth
 	public void gameOfLife() {
+		Random rand = new Random();
 		while (isAlive) {
+			int visitedNumber = 0;
 			draw();
-			for (int i = 0; i < cells; i++) {
-				for (int j = 0; j < cells; j++) {
-					if (!phase2) {
-						if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
+			if (MonteCarlo && MCSiteration < MCS) {
+				while (visitedNumber != cells * cells) {
+					int x = rand.nextInt(cells);
+					int y = rand.nextInt(cells);
+					if (visited[x][y]) {
+						continue;
+					} else {
+						visited[x][y] = true;
+						visitedNumber++;
+						List<Cell> Neighbours;
+						Neighbours = new ArrayList<>();
+						for (int i = x - 1; i <= x + 1; i++) {
+							for (int j = y - 1; j <= y + 1; j++) {
+								if (i == x && j == y) {
+									continue;
+								}
+								int tempX = i;
+								int tempY = j;
+								if (periodic) {
+									if (i < 0) {
+										tempX = cells - 1;
+									}
+									if (j < 0) {
+										tempY = cells - 1;
+									}
+									if (i == cells) {
+										tempX = 0;
+									}
+									if (j == cells) {
+										tempY = 0;
+									}
+								} else {
+									if (i < 0) {
+										continue;
+									}
+									if (j < 0) {
+										continue;
+									}
+									if (i == cells) {
+										continue;
+									}
+									if (j == cells) {
+										continue;
+									}
+								}
+								Neighbours.add(tab[tempX][tempY]);
+							}
+						}
+						int energyBefore = 0;
+						for (Iterator<Cell> iterator = Neighbours.iterator(); iterator.hasNext();) {
+							Cell next = iterator.next();
+							if (next.ID == tab[x][y].ID) {
+								energyBefore++;
+							}
+						}
+						int energyAfter = 0;
+						Random rand1 = new Random();
+						int los = rand1.nextInt(Neighbours.size());
+						for (Iterator<Cell> iterator = Neighbours.iterator(); iterator.hasNext();) {
+							Cell next = iterator.next();
+							if (Neighbours.get(los).ID == next.ID) {
+								energyAfter++;
+							}
+						}
+						if (energyAfter >= energyBefore) {
+							tab[x][y] = Neighbours.get(los);
+							tab1[x][y] = tab[x][y];
+//							tab1[x][y] = Neighbours.get(los);
+						}
+
+					}
+				}
+				for (int i = 0; i < cells; i++) {
+					for (int j = 0; j < cells; j++) {
+						visited[i][j] = false;
+					}
+				}
+				System.out.println("Iteration: " + ++MCSiteration);
+			} else {
+				for (int i = 0; i < cells; i++) {
+					for (int j = 0; j < cells; j++) {
+						if (!phase2) {
+							if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
+								checkNeighbourhood(i, j);
+							}
+						} else if (phase2 && tab[i][j].phase == 2 && tab[i][j].ID != -2) {
 							checkNeighbourhood(i, j);
 						}
-					} else if (phase2 && tab[i][j].phase == 2 && tab[i][j].ID != -2) {
-						checkNeighbourhood(i, j);
 					}
 				}
 			}

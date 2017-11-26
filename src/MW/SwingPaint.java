@@ -23,8 +23,8 @@ import javax.swing.event.DocumentListener;
 public class SwingPaint {
 
 	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, bordersBtn, clearBordersBtn;
-	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField;
-	JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel, probabilityLabel;
+	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField, MCSField;
+	JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel, probabilityLabel, MCSLabel;
 	JCheckBox periodicBox, inclusionRoundBox, phase2Box, phase3Box;
 	JMenuBar menuBar;
 	JMenu menu;
@@ -54,7 +54,12 @@ public class SwingPaint {
 			if (e.getSource() == startBtn) {
 				drawArea.isAlive = true;
 				if (thread.isAlive()) {
-					thread.stop();
+					try {
+						thread.join();
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 				}
 				thread = new Thread() {
 					@Override
@@ -67,7 +72,12 @@ public class SwingPaint {
 
 			if (e.getSource() == stopBtn) {
 				drawArea.isAlive = false;
-				thread.stop();
+				try {
+					thread.join();
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 			if (e.getSource() == periodicBox) {
 				drawArea.periodic = periodicBox.isSelected();
@@ -117,9 +127,9 @@ public class SwingPaint {
 		recrystBtn.addActionListener(actionListener);
 		periodicBox = new JCheckBox("Periodic", true);
 		periodicBox.addActionListener(actionListener);
-		inclusionSizeLabel = new JLabel("Inclusion size:");
+		inclusionSizeLabel = new JLabel("Inc size:");
 		inclusionSizeField = new JTextField("10");
-		inclusionRoundBox = new JCheckBox("Inclusion Round", false);
+		inclusionRoundBox = new JCheckBox("Inc Round", false);
 		inclusionRoundBox.addActionListener(actionListener);
 		probabilityLabel = new JLabel("Probability:");
 		probabilityField = new JTextField("10");
@@ -131,6 +141,8 @@ public class SwingPaint {
 		bordersBtn.addActionListener(actionListener);
 		clearBordersBtn = new JButton("clear Borders");
 		clearBordersBtn.addActionListener(actionListener);
+		MCSLabel = new JLabel("MCS:");
+		MCSField = new JTextField("100");
 
 		inclusionSizeField.getDocument().addDocumentListener(new DocumentListener() {
 
@@ -192,6 +204,27 @@ public class SwingPaint {
 
 			void updateProbability() {
 				drawArea.rule4Probability = Integer.parseInt(probabilityField.getText());
+			}
+		});
+		
+		MCSField.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				updateMCS();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				updateMCS();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+			}
+
+			void updateMCS() {
+				drawArea.MCS = Integer.parseInt(MCSField.getText());
 			}
 		});
 
@@ -272,6 +305,8 @@ public class SwingPaint {
 		list.add(inclusionRoundBox);
 		list.add(probabilityLabel);
 		list.add(probabilityField);
+		list.add(MCSLabel);
+		list.add(MCSField);
 
 		controls.add(clearBtn);
 		controls.add(randBtn);
