@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -19,6 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class SwingPaint {
 
@@ -29,6 +32,8 @@ public class SwingPaint {
 	JMenuBar menuBar;
 	JMenu menu;
 	JMenuItem menuItem;
+	JList<String> typeList;
+	String[] types = {"CellularAutomata", "MonteCarlo"};
 
 	DrawArea drawArea;
 
@@ -293,8 +298,29 @@ public class SwingPaint {
 		});
 		menu.add(menuItem);
 
-		JPanel list = new JPanel();
+		typeList = new JList<>(types);
+		typeList.setSelectedIndex(0);
+		typeList.addListSelectionListener(new ListSelectionListener() {
 
+			@Override
+			public void valueChanged(ListSelectionEvent arg0) {
+				int index = typeList.getSelectedIndex();
+				if (index == 0) {
+					drawArea.MonteCarlo = false;
+				}
+				if (index == 1) {
+					drawArea.MonteCarlo = true;
+				}
+				
+			}
+			
+		});
+
+		JPanel simulationTypes = new JPanel();
+		simulationTypes.add(typeList);
+		
+		JPanel list = new JPanel();
+		
 		list.add(cellLabel);
 		list.add(cellField);
 		list.add(periodicBox);
@@ -317,11 +343,12 @@ public class SwingPaint {
 		controls.add(bordersBtn);
 		controls.add(clearBordersBtn);
 
+		content.add(simulationTypes, BorderLayout.WEST);
 		content.add(list, BorderLayout.NORTH);
 		content.add(controls, BorderLayout.SOUTH);
 
 		frame.setJMenuBar(menuBar);
-		frame.setSize(650, 750);
+		frame.setSize(766, 750);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);

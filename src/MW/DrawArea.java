@@ -48,7 +48,7 @@ public class DrawArea extends JComponent {
 	boolean phase2 = false;
 	boolean phase3 = false;
 
-	boolean MonteCarlo = true;
+	boolean MonteCarlo = false;
 	boolean[][] visited = new boolean[cells][cells];
 	int MCSiteration = 0;
 	int MCS = 100;
@@ -92,7 +92,7 @@ public class DrawArea extends JComponent {
 							}
 						}
 					} else if (e.getButton() == 3 && phase3) {
-						if (tab[x][y].ID != -2 || tab[x][y].ID != -1) {
+						if (tab[x][y].ID != -2 && tab[x][y].ID != -1) {
 							if (colors.get(tab[x][y].ID).phase == 0) {
 								Cell cell;
 								cell = (Cell) colors.get(tab[x][y].ID);
@@ -151,7 +151,7 @@ public class DrawArea extends JComponent {
 	public void clearTables() {
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
-				if (phase3 && tab[i][j].ID != -1) {
+				if (phase3 && tab[i][j].ID != -1 && tab[i][j].ID != -2) {
 					if (colors.get(tab[i][j].ID).phase == 3) {
 						continue;
 					} else {
@@ -177,6 +177,7 @@ public class DrawArea extends JComponent {
 	public void random(int number, int phase) {
 		Random rand = new Random();
 		if (MonteCarlo) {
+			if (phase2) MCSiteration = 0;
 			cells = cellsMax / size;
 			for (int i = 0; i < number; i++) {
 				colors.add(new Cell(ID++, 0, 0));
@@ -184,9 +185,12 @@ public class DrawArea extends JComponent {
 			}
 			for (int i = 0; i < cells; i++) {
 				for (int j = 0; j < cells; j++) {
-					int ID = rand.nextInt(cellNumber);
-					tab[i][j] = colors.get(ID);
-					tab1[i][j] = tab[i][j];
+					if (tab[i][j].ID == -1 || phase2 && tab[i][j].phase != 1 && tab[i][j].ID != 2) {
+						int ID = rand.nextInt(cellNumber);
+						if (colors.get(ID).phase == 1) continue;
+						tab[i][j] = colors.get(ID);
+						tab1[i][j] = tab[i][j];
+					}
 				}
 			}
 		} else {
@@ -221,6 +225,9 @@ public class DrawArea extends JComponent {
 				while (visitedNumber != cells * cells) {
 					int x = rand.nextInt(cells);
 					int y = rand.nextInt(cells);
+//					if (phase3 && tab[x][y].phase == 3) {
+//						continue;
+//					}
 					if (visited[x][y]) {
 						continue;
 					} else {
@@ -265,28 +272,18 @@ public class DrawArea extends JComponent {
 								Neighbours.add(tab[tempX][tempY]);
 							}
 						}
-						int energyBefore = 0;
-						for (Iterator<Cell> iterator = Neighbours.iterator(); iterator.hasNext();) {
-							Cell next = iterator.next();
-							if (next.ID == tab[x][y].ID) {
-								energyBefore++;
-							}
-						}
-						int energyAfter = 0;
-						Random rand1 = new Random();
-						int los = rand1.nextInt(Neighbours.size());
-						for (Iterator<Cell> iterator = Neighbours.iterator(); iterator.hasNext();) {
-							Cell next = iterator.next();
-							if (Neighbours.get(los).ID == next.ID) {
-								energyAfter++;
-							}
-						}
+						int energyBefore = energyCount(Neighbours, tab[x][y].ID);
+						Random randomID = new Random();
+						int newNeighbour = randomID.nextInt(Neighbours.size());
+						int newID = Neighbours.get(newNeighbour).ID;
+						int energyAfter = energyCount(Neighbours, newID);
 						if (energyAfter >= energyBefore) {
-							tab[x][y] = Neighbours.get(los);
+							if (tab[x][y].ID == -2 || Neighbours.get(newNeighbour).ID == -2) continue;
+							if (phase3 && (tab[x][y].phase == 3 || Neighbours.get(newNeighbour).phase == 3)) continue;
+							if (phase2 && (tab[x][y].phase == 1 || Neighbours.get(newNeighbour).phase == 1)) continue;
+							tab[x][y] = Neighbours.get(newNeighbour);
 							tab1[x][y] = tab[x][y];
-//							tab1[x][y] = Neighbours.get(los);
 						}
-
 					}
 				}
 				for (int i = 0; i < cells; i++) {
@@ -314,6 +311,17 @@ public class DrawArea extends JComponent {
 				}
 			}
 		}
+	}
+
+	public int energyCount(List<Cell> Neighbors, int ID) {
+		int energy = 0;
+		for (Iterator<Cell> iterator = Neighbors.iterator(); iterator.hasNext();) {
+			Cell next = iterator.next();
+			if (next.ID == ID) {
+				energy++;
+			}
+		}
+		return energy;
 	}
 
 	// checks the neighbourhood of previosuly found cell.
