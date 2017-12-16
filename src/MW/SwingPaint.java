@@ -36,6 +36,8 @@ public class SwingPaint {
 	String[] types = {"CellularAutomata", "MonteCarlo"};
 
 	DrawArea drawArea;
+	
+	EnergyDistribution energyDistribution;
 
 	ActionListener actionListener = new ActionListener() {
 		Thread thread = new Thread();
@@ -297,7 +299,26 @@ public class SwingPaint {
 
 		});
 		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Show energy distribution");
+		menuItem.addActionListener(new ActionListener() {
 
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				drawArea.distributeEnergy();
+				energyDistribution = new EnergyDistribution(drawArea.cells, drawArea.size);
+				energyDistribution.show();
+				Thread thread = new Thread() {
+					@Override
+					public void run() {
+						energyDistribution.work();
+					}
+				};
+				thread.start();
+			}
+		});
+		menu.add(menuItem);
+		
 		typeList = new JList<>(types);
 		typeList.setSelectedIndex(0);
 		typeList.addListSelectionListener(new ListSelectionListener() {

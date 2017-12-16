@@ -53,6 +53,8 @@ public class DrawArea extends JComponent {
 	int MCSiteration = 0;
 	int MCS = 100;
 
+	static int[][] energyTab;
+	
 	public DrawArea() {
 		setDoubleBuffered(true);
 		createTables();
@@ -151,6 +153,7 @@ public class DrawArea extends JComponent {
 	public void clearTables() {
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
+				energyTab[i][j] = 1;
 				if (phase3 && tab[i][j].ID != -1 && tab[i][j].ID != -2) {
 					if (colors.get(tab[i][j].ID).phase == 3) {
 						continue;
@@ -176,9 +179,15 @@ public class DrawArea extends JComponent {
 
 	public void random(int number, int phase) {
 		Random rand = new Random();
+		cells = cellsMax / size;
+		energyTab = new int[cells][cells];
+		for (int i = 0; i < cells; i++) {
+			for (int j = 0; j < cells; j++) {
+				energyTab[i][j] = 5;
+			}
+		}
 		if (MonteCarlo) {
 			if (phase2) MCSiteration = 0;
-			cells = cellsMax / size;
 			for (int i = 0; i < number; i++) {
 				colors.add(new Cell(ID++, 0, 0));
 				cellNumber++;
@@ -194,7 +203,6 @@ public class DrawArea extends JComponent {
 				}
 			}
 		} else {
-			cells = cellsMax / size;
 			for (int i = 0; i < number; i++) {
 				int x = rand.nextInt(cells);
 				int y = rand.nextInt(cells);
@@ -295,6 +303,7 @@ public class DrawArea extends JComponent {
 			} else {
 				for (int i = 0; i < cells; i++) {
 					for (int j = 0; j < cells; j++) {
+						if (phase3 && tab[i][j].phase == 3) continue;
 						if (!phase2) {
 							if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
 								checkNeighbourhood(i, j);
@@ -659,6 +668,18 @@ public class DrawArea extends JComponent {
 		image = tmpImage;
 		draw();
 		return true;
+	}
+	
+	public void distributeEnergy() {
+		for (int i = 0; i < cells; i++) {
+			for (int j = 0; j < cells; j++) {
+				if (isBorder(i,j)) {
+					energyTab[i][j] = 5;
+				}else {
+					energyTab[i][j] = 1;
+				}
+			}
+		}
 	}
 
 	public class Cell {
