@@ -54,7 +54,15 @@ public class DrawArea extends JComponent {
 	int MCS = 100;
 
 	static int[][] energyTab;
-	
+	boolean heterogenous = true;
+
+	int nucleons = 10;
+	boolean constant = true;
+	boolean increasing = false;
+	boolean beginning = false;
+	int nucleonsPrevious = 0; // for increasing type only
+	boolean nucleonsCreated = false; // for beginning type only
+
 	public DrawArea() {
 		setDoubleBuffered(true);
 		createTables();
@@ -181,13 +189,9 @@ public class DrawArea extends JComponent {
 		Random rand = new Random();
 		cells = cellsMax / size;
 		energyTab = new int[cells][cells];
-		for (int i = 0; i < cells; i++) {
-			for (int j = 0; j < cells; j++) {
-				energyTab[i][j] = 5;
-			}
-		}
 		if (MonteCarlo) {
-			if (phase2) MCSiteration = 0;
+			if (phase2)
+				MCSiteration = 0;
 			for (int i = 0; i < number; i++) {
 				colors.add(new Cell(ID++, 0, 0));
 				cellNumber++;
@@ -196,7 +200,8 @@ public class DrawArea extends JComponent {
 				for (int j = 0; j < cells; j++) {
 					if (tab[i][j].ID == -1 || phase2 && tab[i][j].phase != 1 && tab[i][j].ID != 2) {
 						int ID = rand.nextInt(cellNumber);
-						if (colors.get(ID).phase == 1) continue;
+						if (colors.get(ID).phase == 1)
+							continue;
 						tab[i][j] = colors.get(ID);
 						tab1[i][j] = tab[i][j];
 					}
@@ -233,9 +238,9 @@ public class DrawArea extends JComponent {
 				while (visitedNumber != cells * cells) {
 					int x = rand.nextInt(cells);
 					int y = rand.nextInt(cells);
-//					if (phase3 && tab[x][y].phase == 3) {
-//						continue;
-//					}
+					// if (phase3 && tab[x][y].phase == 3) {
+					// continue;
+					// }
 					if (visited[x][y]) {
 						continue;
 					} else {
@@ -286,9 +291,12 @@ public class DrawArea extends JComponent {
 						int newID = Neighbours.get(newNeighbour).ID;
 						int energyAfter = energyCount(Neighbours, newID);
 						if (energyAfter >= energyBefore) {
-							if (tab[x][y].ID == -2 || Neighbours.get(newNeighbour).ID == -2) continue;
-							if (phase3 && (tab[x][y].phase == 3 || Neighbours.get(newNeighbour).phase == 3)) continue;
-							if (phase2 && (tab[x][y].phase == 1 || Neighbours.get(newNeighbour).phase == 1)) continue;
+							if (tab[x][y].ID == -2 || Neighbours.get(newNeighbour).ID == -2)
+								continue;
+							if (phase3 && (tab[x][y].phase == 3 || Neighbours.get(newNeighbour).phase == 3))
+								continue;
+							if (phase2 && (tab[x][y].phase == 1 || Neighbours.get(newNeighbour).phase == 1))
+								continue;
 							tab[x][y] = Neighbours.get(newNeighbour);
 							tab1[x][y] = tab[x][y];
 						}
@@ -303,7 +311,8 @@ public class DrawArea extends JComponent {
 			} else {
 				for (int i = 0; i < cells; i++) {
 					for (int j = 0; j < cells; j++) {
-						if (phase3 && tab[i][j].phase == 3) continue;
+						if (phase3 && tab[i][j].phase == 3)
+							continue;
 						if (!phase2) {
 							if (tab[i][j].ID != -1 && tab[i][j].ID != -2) {
 								checkNeighbourhood(i, j);
@@ -319,6 +328,7 @@ public class DrawArea extends JComponent {
 					tab[i][j] = tab1[i][j];
 				}
 			}
+			distributeEnergy();
 		}
 	}
 
@@ -564,6 +574,7 @@ public class DrawArea extends JComponent {
 						continue;
 					}
 				}
+				if (tab[tempX][tempY].recristallized || tab[x][y].recristallized) break;
 				if (tab[tempX][tempY].ID != tab[x][y].ID) {
 					state = true;
 				}
@@ -669,26 +680,120 @@ public class DrawArea extends JComponent {
 		draw();
 		return true;
 	}
-	
+
 	public void distributeEnergy() {
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
-				if (isBorder(i,j)) {
+				if (tab[i][j].recristallized) {
 					energyTab[i][j] = 5;
-				}else {
+					continue;
+				}
+				else if (isBorder(i, j) && heterogenous && !tab[i][j].recristallized && energyTab[i][j] != 5) {
+					energyTab[i][j] = 3;
+				} else {
 					energyTab[i][j] = 1;
 				}
 			}
 		}
 	}
 
+//	int nucleons = 10;
+//	boolean constant = true;
+//	boolean increasing = false;
+//	boolean beginning = false;
+//	int nucleonsPrevious = 0; // for increasing type only
+//	boolean nucleonsCreated = false; // for beginning type only
+	
+	public void dynamicRecrystallization() {
+		Random rand = new Random();
+		while(isAlive) {
+			int nucleonsTmp = nucleons;
+			if (increasing) nucleonsTmp += nucleons;
+			for (int i = 0; i < nucleonsTmp; i++) {
+				if (beginning && nucleonsCreated) break;
+				int x;
+				int y;
+				x = rand.nextInt(cells);
+				y = rand.nextInt(cells);
+				if (!tab[x][y].recristallized) {
+					if(heterogenous) {
+						if (!isBorder(x, y)) continue;
+					}
+					recrystallize(x,y);
+				}
+			}
+			if (beginning) nucleonsCreated = true;
+			if (increasing) nucleonsPrevious = nucleonsTmp;
+			for (int i = 0; i < cells; i++) {
+				for (int j = 0; j < cells; j++) {
+					if (tab[i][j].recristallized) recrystallizeNeighbors(i, j);
+				}
+			}
+			for (int i = 0; i < cells; i++) {
+				for (int j = 0; j < cells; j++) {
+					tab[i][j] = tab1[i][j];
+				}
+			}
+			draw();
+			distributeEnergy();
+		}
+	}
+	
+	public void recrystallize(int x, int y) {
+		tab1[x][y] = new Cell(ID++, true);
+		tab[x][y] = tab1[x][y];
+		cellNumber++;
+		colors.add(tab[x][y]);
+	}
+
+	public void recrystallizeNeighbors(int x, int y) {
+		for (int i = x - 1; i <= x + 1; i++) {
+			for (int j = y - 1; j <= y + 1; j++) {
+				if (i == x && j == y) {
+					continue;
+				}
+				int tempX = i;
+				int tempY = j;
+				if (periodic) {
+					if (i < 0) {
+						tempX = cells - 1;
+					}
+					if (j < 0) {
+						tempY = cells - 1;
+					}
+					if (i == cells) {
+						tempX = 0;
+					}
+					if (j == cells) {
+						tempY = 0;
+					}
+				} else {
+					if (i < 0) {
+						continue;
+					}
+					if (j < 0) {
+						continue;
+					}
+					if (i == cells) {
+						continue;
+					}
+					if (j == cells) {
+						continue;
+					}
+				}
+				if (!tab1[tempX][tempY].recristallized) {
+					tab1[tempX][tempY] = tab[x][y];
+				}
+			}
+		}
+	}
+	
 	public class Cell {
 
 		int ID;
 		Color color;
 		public int x;
 		public int y;
-		public double dislocations;
 		public boolean recristallized = false;
 		public int phase = 0;
 
@@ -701,24 +806,19 @@ public class DrawArea extends JComponent {
 			this.x = x;
 			this.y = y;
 			color = new Color(r, g, b);
-			dislocations = 0.0;
 		}
 
 		public Cell(int id, boolean recristallized) {
 			Random rand = new Random();
 			float r = rand.nextFloat();
-			float g = rand.nextFloat();
-			float b = rand.nextFloat();
 			this.ID = id;
-			color = new Color(r, g, b);
-			dislocations = 0.0;
+			color = new Color(r, 0, 0);
 			this.recristallized = recristallized;
 		}
 
 		public Cell() {
 			this.ID = -1;
 			color = Color.WHITE;
-			dislocations = 0.0;
 		}
 
 		public Cell(boolean isInclusion, int x, int y) { // for creating inclusions

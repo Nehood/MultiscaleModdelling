@@ -23,7 +23,7 @@ public class EnergyDistribution {
 		Container content = frame.getContentPane();
 		content.setLayout(new BorderLayout());
 		content.add(energyArea, BorderLayout.CENTER);
-		frame.setSize(766, 750);
+		frame.setSize(656, 679);
 		frame.setResizable(false);
 		frame.setVisible(true);
 	}
@@ -38,7 +38,6 @@ class EnergyArea extends JComponent{
 	private static final long serialVersionUID = 1L;
 	private static Image image;
 	private static Graphics2D g2;
-	private Graphics g;
 	
 	int cells;
 	int size;
@@ -79,6 +78,9 @@ class EnergyArea extends JComponent{
 					clear();
 				}
 				if (DrawArea.energyTab[i][j] == 5) {
+					g2.setPaint(Color.RED);
+				}
+				if (DrawArea.energyTab[i][j] == 3) {
 					g2.setPaint(Color.GREEN);
 				}
 				if (DrawArea.energyTab[i][j] == 1) {
