@@ -707,7 +707,13 @@ public class DrawArea extends JComponent {
 	
 	public void dynamicRecrystallization() {
 		Random rand = new Random();
+		int iteration = 0;
 		while(isAlive) {
+			if (iteration % MCS != 0) {
+				System.out.println("Iteracja " + iteration);
+				iteration++;
+				continue;
+			}
 			int nucleonsTmp = nucleons;
 			if (increasing) nucleonsTmp += nucleons;
 			for (int i = 0; i < nucleonsTmp; i++) {
@@ -717,17 +723,15 @@ public class DrawArea extends JComponent {
 				x = rand.nextInt(cells);
 				y = rand.nextInt(cells);
 				if (!tab[x][y].recristallized) {
-//					if(heterogenous) {
-//						if (!isBorder(x, y)) continue;
-//					}
-//					recrystallize(x,y);
+					if (!isBorder(x, y)) continue;
+					else recrystallize(x,y);
 				}
 			}
 			if (beginning) nucleonsCreated = true;
 			if (increasing) nucleonsPrevious = nucleonsTmp;
 			for (int i = 0; i < cells; i++) {
 				for (int j = 0; j < cells; j++) {
-					if (tab[i][j].recristallized) recrystallizeNeighbors(i, j);
+					//if (tab[i][j].recristallized) recrystallizeNeighbors(i, j);
 				}
 			}
 			for (int i = 0; i < cells; i++) {
@@ -737,6 +741,7 @@ public class DrawArea extends JComponent {
 			}
 			draw();
 			distributeEnergy();
+			iteration++;
 		}
 	}
 	
