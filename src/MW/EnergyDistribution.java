@@ -77,13 +77,13 @@ class EnergyArea extends JComponent{
 					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					clear();
 				}
-				if (DrawArea.energyTab[i][j] == 5) {
-					g2.setPaint(Color.RED);
-				}
-				if (DrawArea.energyTab[i][j] == 3) {
+//				if (DrawArea.energyTab[i][j] == 5) {
+//					g2.setPaint(Color.RED);
+//				} zrekrystalizowane
+				if (DrawArea.energyTab[i][j] == DrawArea.borderEnergy) {
 					g2.setPaint(Color.GREEN);
 				}
-				if (DrawArea.energyTab[i][j] == 1) {
+				if (DrawArea.energyTab[i][j] == DrawArea.cellEnergy) {
 					g2.setPaint(Color.BLUE);
 				}
 				g2.fillRect(i * size, j * size, size, size);

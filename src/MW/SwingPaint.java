@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -26,9 +27,10 @@ import javax.swing.event.ListSelectionListener;
 public class SwingPaint {
 
 	JButton randBtn, startBtn, stopBtn, recrystBtn, clearBtn, bordersBtn, clearBordersBtn;
-	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField, MCSField, nucleonsField;
+	JTextField cellField, cellSizeField, inclusionSizeField, probabilityField, MCSField, nucleonsField, energyField;
 	JLabel cellLabel, cellSizeLabel, inclusionSizeLabel, inclusionRoundLabel, probabilityLabel, MCSLabel, nucleonsLabel;
-	JCheckBox periodicBox, inclusionRoundBox, phase2Box, phase3Box, heterogenousBox;
+	JCheckBox periodicBox, inclusionRoundBox, phase2Box, phase3Box;
+	JComboBox<String> energyList;
 	JMenuBar menuBar;
 	JMenu menu;
 	JMenuItem menuItem;
@@ -99,9 +101,6 @@ public class SwingPaint {
 			}
 			if (e.getSource() == phase3Box) {
 				drawArea.phase3 = phase3Box.isSelected();
-			}
-			if (e.getSource() == heterogenousBox) {
-				drawArea.heterogenous = heterogenousBox.isSelected();
 			}
 			if (e.getSource() == bordersBtn) {
 				drawArea.borders();
@@ -174,8 +173,14 @@ public class SwingPaint {
 		MCSField = new JTextField("100");
 		nucleonsLabel = new JLabel("Nucleons:");
 		nucleonsField = new JTextField("10");
-		heterogenousBox = new JCheckBox("Heterogenous", true);
-		heterogenousBox.addActionListener(actionListener);
+		energyField = new JTextField("00");
+		
+		energyList = new JComboBox<String>();
+		energyList.addItem("Cell Energy");
+		energyList.addItem("Border Energy");
+		energyList.addActionListener(actionListener);
+		
+		
 
 		inclusionSizeField.getDocument().addDocumentListener(new DocumentListener() {
 
@@ -279,6 +284,35 @@ public class SwingPaint {
 
 			void updateNucleons() {
 				drawArea.nucleons = Integer.parseInt(nucleonsField.getText());
+			}
+		});
+		
+		energyField.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				updateEnergy();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				updateEnergy();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+			}
+
+			void updateEnergy() {
+				String selected = (String) energyList.getSelectedItem();
+				 if (selected == "Cell Energy") {
+					 DrawArea.cellEnergy = Integer.parseInt(energyField.getText());
+					 System.out.println(DrawArea.cellEnergy);
+				 }
+				 if (selected == "Border Energy") {
+					 DrawArea.borderEnergy = Integer.parseInt(energyField.getText());
+					 System.out.println(DrawArea.borderEnergy);
+				 }
 			}
 		});
 
@@ -435,7 +469,8 @@ public class SwingPaint {
 		list.add(probabilityField);
 		list.add(MCSLabel);
 		list.add(MCSField);
-		list.add(heterogenousBox);
+		list.add(energyList);
+		list.add(energyField);
 		list.add(nucleonsLabel);
 		list.add(nucleonsField);
 

@@ -54,7 +54,8 @@ public class DrawArea extends JComponent {
 	int MCS = 100;
 
 	static int[][] energyTab;
-	boolean heterogenous = true;
+	public static int cellEnergy = 0;
+	public static int borderEnergy = 0;
 
 	int nucleons = 10;
 	boolean constant = true;
@@ -688,10 +689,10 @@ public class DrawArea extends JComponent {
 					energyTab[i][j] = 5;
 					continue;
 				}
-				else if (isBorder(i, j) && heterogenous && !tab[i][j].recristallized && energyTab[i][j] != 5) {
-					energyTab[i][j] = 3;
+				else if (isBorder(i, j) && !tab[i][j].recristallized && energyTab[i][j] != 5) {
+					energyTab[i][j] = borderEnergy;
 				} else {
-					energyTab[i][j] = 1;
+					energyTab[i][j] = cellEnergy;
 				}
 			}
 		}
@@ -716,10 +717,10 @@ public class DrawArea extends JComponent {
 				x = rand.nextInt(cells);
 				y = rand.nextInt(cells);
 				if (!tab[x][y].recristallized) {
-					if(heterogenous) {
-						if (!isBorder(x, y)) continue;
-					}
-					recrystallize(x,y);
+//					if(heterogenous) {
+//						if (!isBorder(x, y)) continue;
+//					}
+//					recrystallize(x,y);
 				}
 			}
 			if (beginning) nucleonsCreated = true;
