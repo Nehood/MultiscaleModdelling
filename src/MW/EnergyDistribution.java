@@ -83,7 +83,7 @@ class EnergyArea extends JComponent{
 				if (DrawArea.energyTab[i][j] == DrawArea.borderEnergy) {
 					g2.setPaint(Color.GREEN);
 				}
-				if (DrawArea.energyTab[i][j] == DrawArea.cellEnergy) {
+				else if (DrawArea.energyTab[i][j] == DrawArea.cellEnergy) {
 					g2.setPaint(Color.BLUE);
 				}
 				g2.fillRect(i * size, j * size, size, size);

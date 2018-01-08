@@ -686,10 +686,10 @@ public class DrawArea extends JComponent {
 		for (int i = 0; i < cells; i++) {
 			for (int j = 0; j < cells; j++) {
 				if (tab[i][j].recristallized) {
-					energyTab[i][j] = 5;
+					energyTab[i][j] = 0;
 					continue;
 				}
-				else if (isBorder(i, j) && !tab[i][j].recristallized && energyTab[i][j] != 5) {
+				else if (isBorder(i, j)) {
 					energyTab[i][j] = borderEnergy;
 				} else {
 					energyTab[i][j] = cellEnergy;
@@ -710,10 +710,15 @@ public class DrawArea extends JComponent {
 		int iteration = 0;
 		while(isAlive) {
 			if (iteration % MCS != 0) {
-				System.out.println("Iteracja " + iteration);
 				iteration++;
+				for (int i = 0; i < cells; i++) {
+					for (int j = 0; j < cells; j++) {
+						//if (tab[i][j].recristallized) recrystallizeNeighbors(i, j);
+					}
+				}
 				continue;
 			}
+			iteration = 0;
 			int nucleonsTmp = nucleons;
 			if (increasing) nucleonsTmp += nucleons;
 			for (int i = 0; i < nucleonsTmp; i++) {
@@ -723,6 +728,10 @@ public class DrawArea extends JComponent {
 				x = rand.nextInt(cells);
 				y = rand.nextInt(cells);
 				if (!tab[x][y].recristallized) {
+					if (cellEnergy == borderEnergy) {
+						recrystallize(x,y);
+						continue;
+					}
 					if (!isBorder(x, y)) continue;
 					else recrystallize(x,y);
 				}
@@ -792,6 +801,49 @@ public class DrawArea extends JComponent {
 				}
 			}
 		}
+	}
+	
+	int countEnergy(int x, int y) {
+		for (int i = x - 1; i <= x + 1; i++) {
+			for (int j = y - 1; j <= y + 1; j++) {
+				if (i == x && j == y) {
+					continue;
+				}
+				int tempX = i;
+				int tempY = j;
+				if (periodic) {
+					if (i < 0) {
+						tempX = cells - 1;
+					}
+					if (j < 0) {
+						tempY = cells - 1;
+					}
+					if (i == cells) {
+						tempX = 0;
+					}
+					if (j == cells) {
+						tempY = 0;
+					}
+				} else {
+					if (i < 0) {
+						continue;
+					}
+					if (j < 0) {
+						continue;
+					}
+					if (i == cells) {
+						continue;
+					}
+					if (j == cells) {
+						continue;
+					}
+				}
+				if (!tab1[tempX][tempY].recristallized) {
+					tab1[tempX][tempY] = tab[x][y];
+				}
+			}
+		}
+		return 1;
 	}
 	
 	public class Cell {
